@@ -1,6 +1,13 @@
 #include <iostream>
 #include <random>
 #include "test.cpp"
+#include <xenium/harris_michael_hash_map.hpp>
+#include <xenium/policy.hpp>
+#include <xenium/reclamation/lock_free_ref_count.hpp>
+#include <xenium/reclamation/hazard_pointer.hpp>
+#include <xenium/reclamation/hazard_eras.hpp>
+#include <xenium/reclamation/stamp_it.hpp>
+#include <xenium/reclamation/quiescent_state_based.hpp>
 
 const std::size_t Buckets = 256;
 int main(int argc, char *argv[]){
@@ -27,28 +34,7 @@ int main(int argc, char *argv[]){
         std::normal_distribution<double>>
         (operations, n_threads, 
         pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
-        
-    Test::HarrisMichaelMapTest<
-        std::normal_distribution<double>, 
-        xenium::reclamation::lock_free_ref_count<>,
-        128>
-        (operations, n_threads, 
-        pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
-        
-    Test::HarrisMichaelMapTest<
-        std::normal_distribution<double>, 
-        xenium::reclamation::lock_free_ref_count<>,
-        512>
-        (operations, n_threads, 
-        pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
-        
-    Test::HarrisMichaelMapTest<
-        std::normal_distribution<double>, 
-        xenium::reclamation::lock_free_ref_count<>,
-        1024>
-        (operations, n_threads, 
-        pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
-        
+
     Test::HarrisMichaelMapTest<
         std::normal_distribution<double>, 
         xenium::reclamation::lock_free_ref_count<>,
@@ -58,22 +44,47 @@ int main(int argc, char *argv[]){
         
     Test::HarrisMichaelMapTest<
         std::normal_distribution<double>, 
-        xenium::reclamation::lock_free_ref_count<>,
+        xenium::reclamation::hazard_pointer<>,
         4096>
         (operations, n_threads, 
         pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
         
     Test::HarrisMichaelMapTest<
         std::normal_distribution<double>, 
-        xenium::reclamation::lock_free_ref_count<>,
+        xenium::reclamation::hazard_eras<>,
         4096>
         (operations, n_threads, 
         pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
         
     Test::HarrisMichaelMapTest<
         std::normal_distribution<double>, 
-        xenium::reclamation::lock_free_ref_count<>,
+        xenium::reclamation::stamp_it,
         4096>
+        (operations, n_threads, 
+        pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
+
+    Test::HarrisMichaelMapTest<
+        std::normal_distribution<double>, 
+        xenium::reclamation::quiescent_state_based,
+        4096>
+        (operations, n_threads, 
+        pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
+
+    Test::Vyukov<
+        std::normal_distribution<double>, 
+        xenium::reclamation::hazard_pointer<>>
+        (operations, n_threads, 
+        pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
+
+    Test::Vyukov<
+        std::normal_distribution<double>, 
+        xenium::reclamation::hazard_eras<>>
+        (operations, n_threads, 
+        pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
+
+    Test::Vyukov<
+        std::normal_distribution<double>, 
+        xenium::reclamation::hazard_eras<>>
         (operations, n_threads, 
         pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
 
