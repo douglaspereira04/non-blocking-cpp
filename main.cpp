@@ -8,11 +8,13 @@
 #include <xenium/reclamation/hazard_eras.hpp>
 #include <xenium/reclamation/stamp_it.hpp>
 #include <xenium/reclamation/quiescent_state_based.hpp>
+#include <cds/container/feldman_hashmap_dhp.h>
+#include <cds/gc/hp.h>
 
 const std::size_t Buckets = 256;
 int main(int argc, char *argv[]){
     
-    unsigned int n_threads = 4;
+    unsigned int n_threads = 32;
 
     unsigned long operations = (unsigned long) 1E7;
 
@@ -87,5 +89,10 @@ int main(int argc, char *argv[]){
         xenium::reclamation::hazard_eras<>>
         (operations, n_threads, 
         pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
+
+
+    typedef cds::gc::HP gc_type;
+    typedef cds::container::FeldmanHashMap< gc_type, int, int, cds::container::feldman_hashmap::traits> feldman_map;
+    feldman_map map;
 
 }

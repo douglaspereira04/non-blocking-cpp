@@ -1,0 +1,1 @@
+/usr/bin/c++  -fopenmp -ltbb -rdynamic CMakeFiles/main.dir/main.cpp.o -o main  /home/douglas/Documentos/vcpkg/installed/x64-linux/debug/lib/libcds-s_d.a 

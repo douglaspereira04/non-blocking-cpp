@@ -1,0 +1,3 @@
+/home/douglas/Documentos/non-blocking-cpp/CMakeFiles/main.dir
+/home/douglas/Documentos/non-blocking-cpp/CMakeFiles/edit_cache.dir
+/home/douglas/Documentos/non-blocking-cpp/CMakeFiles/rebuild_cache.dir
