@@ -39,8 +39,8 @@ const std::size_t Buckets = 256;
 int main(int argc, char *argv[]){
     
     unsigned int max_n_threads = 64;
-
-    unsigned long max_operations = (unsigned long) 1E7;
+    unsigned long max_operations = (unsigned long) 1E9;
+    std::size_t replications = 1;
 
     unsigned long pre_population = (unsigned long) 1E4;
 
@@ -53,91 +53,93 @@ int main(int argc, char *argv[]){
     std::uniform_real_distribution<double> uniform_distribution(-1e9, 1e9);
 
     clear_file();
-    for (unsigned int thread_amount = 2; thread_amount <= max_n_threads; thread_amount*=2)
+
+    for (size_t i = 0; i < replications; i++)
     {
-        for (unsigned long operations = (unsigned long) 1E4; operations < max_operations; operations*=10)
-        {       
-                Test test = Test::LockUnorderedMap<
-                    std::uniform_real_distribution<double>>
-                    (operations, thread_amount, 
-                    pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
-                append_to_file(test, 0,"0");
-
-                test = Test::TBBMap<
-                    std::uniform_real_distribution<double>>
-                    (operations, thread_amount, 
-                    pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
-                append_to_file(test, 0,"0");
-
-
-                test = Test::HarrisMichaelMapTest<
-                    std::uniform_real_distribution<double>, 
-                    xenium::reclamation::lock_free_ref_count<>,
-                    512>
-                    (operations, thread_amount, 
-                    pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
-                append_to_file(test, 512,"lock_free_ref_count");
-
         
-                test =  Test::HarrisMichaelMapTest<
-                    std::uniform_real_distribution<double>, 
-                    xenium::reclamation::hazard_pointer<>,
-                    512>
-                    (operations, thread_amount, 
-                    pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
-                append_to_file(test, 512,"hazard_pointer");
-                
+        for (unsigned int thread_amount = 2; thread_amount <= max_n_threads; thread_amount*=2)
+        {
+            for (unsigned long operations = (unsigned long) 1E4; operations < max_operations; operations*=10)
+            {       
+                    Test test = Test::LockUnorderedMap<
+                        std::uniform_real_distribution<double>>
+                        (operations, thread_amount, 
+                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
+                    append_to_file(test, 0,"0");
+
+                    test = Test::TBBMap<
+                        std::uniform_real_distribution<double>>
+                        (operations, thread_amount, 
+                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
+                    append_to_file(test, 0,"0");
+
+
+                    test = Test::HarrisMichaelMapTest<
+                        std::uniform_real_distribution<double>, 
+                        xenium::reclamation::lock_free_ref_count<>,
+                        512>
+                        (operations, thread_amount, 
+                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
+                    append_to_file(test, 512,"lock_free_ref_count");
+
+            
+                    test =  Test::HarrisMichaelMapTest<
+                        std::uniform_real_distribution<double>, 
+                        xenium::reclamation::hazard_pointer<>,
+                        512>
+                        (operations, thread_amount, 
+                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
+                    append_to_file(test, 512,"hazard_pointer");
                     
+            
+                    test =  Test::HarrisMichaelMapTest<
+                        std::uniform_real_distribution<double>, 
+                        xenium::reclamation::hazard_eras<>,
+                        512>
+                        (operations, thread_amount, 
+                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
+                    append_to_file(test, 512,"hazard_eras");
 
+                    test =  Test::HarrisMichaelMapTest<
+                        std::uniform_real_distribution<double>, 
+                        xenium::reclamation::stamp_it,
+                        512>
+                        (operations, thread_amount, 
+                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
+                    append_to_file(test, 512,"stamp_it");
+                        
+                    test =  Test::HarrisMichaelMapTest<
+                        std::uniform_real_distribution<double>, 
+                        xenium::reclamation::quiescent_state_based,
+                        512>
+                        (operations, thread_amount, 
+                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
+                    append_to_file(test, 512,"quiescent_state_based");
+
+                    test =  Test::Vyukov<
+                        std::uniform_real_distribution<double>, 
+                        xenium::reclamation::hazard_pointer<>>
+                        (operations, thread_amount, 
+                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
+                    append_to_file(test, 512,"hazard_pointer");
+
+                    test =  Test::Vyukov<
+                        std::uniform_real_distribution<double>, 
+                        xenium::reclamation::hazard_eras<>>
+                        (operations, thread_amount, 
+                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
+                    append_to_file(test, 512,"hazard_eras");
+            }
+            
         }
-        
     }
     
     
+    
     /*
-        
-    Test::HarrisMichaelMapTest<
-        std::normal_distribution<double>, 
-        xenium::reclamation::hazard_eras<>,
-        512>
-        (operations, n_threads, 
-        pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
-        
-    Test::HarrisMichaelMapTest<
-        std::normal_distribution<double>, 
-        xenium::reclamation::stamp_it,
-        512>
-        (operations, n_threads, 
-        pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
-
-    Test::HarrisMichaelMapTest<
-        std::normal_distribution<double>, 
-        xenium::reclamation::quiescent_state_based,
-        512>
-        (operations, n_threads, 
-        pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
-
-    Test::Vyukov<
-        std::normal_distribution<double>, 
-        xenium::reclamation::hazard_pointer<>>
-        (operations, n_threads, 
-        pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
-
-    Test::Vyukov<
-        std::normal_distribution<double>, 
-        xenium::reclamation::hazard_eras<>>
-        (operations, n_threads, 
-        pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
-
-    Test::Vyukov<
-        std::normal_distribution<double>, 
-        xenium::reclamation::hazard_eras<>>
-        (operations, n_threads, 
-        pre_population, get_proportionn, set_proportion, delete_proportion, distribution);
-    */
-/*
     typedef cds::gc::HP gc_type;
     typedef cds::container::FeldmanHashMap< gc_type, int, int, cds::container::feldman_hashmap::traits> feldman_map;
-    feldman_map map;*/
+    feldman_map map;
+    */
 
 }
