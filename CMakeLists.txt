@@ -6,6 +6,6 @@ include_directories(".")
 
 add_executable(main main.cpp)
 
-find_package(LibCDS CONFIG REQUIRED)
-target_link_libraries(main PRIVATE LibCDS::cds-s)
+#find_package(LibCDS CONFIG REQUIRED)
+#target_link_libraries(main PRIVATE LibCDS::cds-s)
 

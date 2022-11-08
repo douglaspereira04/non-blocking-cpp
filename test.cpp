@@ -6,53 +6,74 @@
 #include <tbb/concurrent_hash_map.h>
 #include <xenium/harris_michael_hash_map.hpp>
 #include <xenium/vyukov_hash_map.hpp>
+#include <string>
 
 
 class Test{
 protected:
 
-	unsigned long elapsedTime;
+	std::string structure;
+	unsigned long elapsed_time;
 	unsigned long operations;
-	unsigned int n_threads;
+	unsigned int thread_amount;
+	double throughput;
 
 public:
 
-	Test(unsigned long elapsedTime, unsigned long operations, unsigned int n_threads);
+	Test(std::string structure, unsigned long elapsed_time, unsigned long operations, unsigned int thread_amount);
 	~Test();
 	
 	template <typename Distribution, typename Reclaimer, std::size_t Buckets> 
 		static Test HarrisMichaelMapTest(unsigned long operations, 
-		unsigned int n_threads, unsigned long prePopulation, double getProportion, 
+		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
 		double setProportion, double deleteProportion, Distribution distribution);
 
 	template <typename Distribution> 
 		static Test LockUnorderedMap(unsigned long operations, 
-		unsigned int n_threads, unsigned long prePopulation, double getProportion, 
+		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
 		double setProportion, double deleteProportion, Distribution distribution);
 
 	template <typename Distribution> 
 		static Test TBBMap(unsigned long operations, 
-		unsigned int n_threads, unsigned long prePopulation, double getProportion, 
+		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
 		double setProportion, double deleteProportion, Distribution distribution);
 
 	template <typename Distribution, typename Reclaimer> 
 		static Test Vyukov(unsigned long operations, 
-		unsigned int n_threads, unsigned long prePopulation, double getProportion, 
+		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
 		double setProportion, double deleteProportion, Distribution distribution);
+
+	std::string Structure(){
+		return this->structure;
+	};
+	unsigned long ElapsedTime(){
+		return this->elapsed_time;
+	};
+	unsigned long Operations(){
+		return this->operations;
+	};
+	unsigned long ThreadAmount(){
+		return this->thread_amount;
+	};
+	unsigned long Throughput(){
+		return this->throughput;
+	};
 };
 
 
-Test::Test(unsigned long elapsedTime, unsigned long operations, unsigned int n_threads){
-	Test::elapsedTime = elapsedTime;
+Test::Test(std::string structure, unsigned long elapsed_time, unsigned long operations, unsigned int thread_amount){
+	Test::structure = structure;
+	Test::elapsed_time = elapsed_time;
 	Test::operations = operations;
-	Test::n_threads = n_threads;
+	Test::thread_amount = thread_amount;
+	Test::throughput = ((double)operations/elapsed_time)*10e9;
 };
 
 Test::~Test(){};
 
 template <typename Distribution, typename Reclaimer, std::size_t Buckets> 
 	Test Test::HarrisMichaelMapTest(unsigned long operations, 
-	unsigned int n_threads, unsigned long prePopulation, double getProportion, 
+	unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
 	double setProportion, double deleteProportion, Distribution distribution){
 	xenium::harris_michael_hash_map
 		<int, int, xenium::policy::reclaimer
@@ -61,7 +82,7 @@ template <typename Distribution, typename Reclaimer, std::size_t Buckets>
   	std::default_random_engine generator;
 	std::uniform_real_distribution<double> uniform(0.0,1.0);
 	
-	omp_set_num_threads(n_threads);
+	omp_set_num_threads(thread_amount);
 
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	#pragma omp parallel for schedule(static,1) private(generator, uniform)
@@ -82,21 +103,19 @@ template <typename Distribution, typename Reclaimer, std::size_t Buckets>
 	}
 
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-
-	std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << "[ns]" << std::endl;
-	Test test_result = Test(1U, 1U, 1U);
-	return test_result;	
+	unsigned long elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+	return Test("XeniumHarrisMichael", elapsed_time, operations, thread_amount);
 };
 template <typename Distribution> 
 		Test Test::LockUnorderedMap(unsigned long operations, 
-		unsigned int n_threads, unsigned long prePopulation, double getProportion, 
+		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
 		double setProportion, double deleteProportion, Distribution distribution){
 	std::unordered_map<int, int> map;
 	
   	std::default_random_engine generator;
 	std::uniform_real_distribution<double> uniform(0.0,1.0);
 	
-	omp_set_num_threads(n_threads);
+	omp_set_num_threads(thread_amount);
 
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	#pragma omp parallel for schedule(static,1) private(generator, uniform)
@@ -120,15 +139,13 @@ template <typename Distribution>
 	}
 
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-
-	std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << "[ns]" << std::endl;
-	Test test_result = Test(1U, 1U, 1U);
-	return test_result;	
+	unsigned long elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+	return Test("LockUnordered", elapsed_time, operations, thread_amount);
 };
 
 template <typename Distribution> 
 		Test Test::TBBMap(unsigned long operations, 
-		unsigned int n_threads, unsigned long prePopulation, double getProportion, 
+		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
 		double setProportion, double deleteProportion, Distribution distribution){
 	typedef tbb::concurrent_hash_map<int,int> tbb_map;
 	tbb_map map;
@@ -136,7 +153,7 @@ template <typename Distribution>
   	std::default_random_engine generator;
 	std::uniform_real_distribution<double> uniform(0.0,1.0);
 	
-	omp_set_num_threads(n_threads);
+	omp_set_num_threads(thread_amount);
 
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	#pragma omp parallel for schedule(static,1) private(generator, uniform)
@@ -159,15 +176,13 @@ template <typename Distribution>
 	}
 
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-
-	std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << "[ns]" << std::endl;
-	Test test_result = Test(1U, 1U, 1U);
-	return test_result;	
+	unsigned long elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+	return Test("TBB", elapsed_time, operations, thread_amount);
 };
 
 template <typename Distribution, typename Reclaimer> 
 		Test Test::Vyukov(unsigned long operations, 
-		unsigned int n_threads, unsigned long prePopulation, double getProportion, 
+		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
 		double setProportion, double deleteProportion, Distribution distribution){
 	typedef xenium::vyukov_hash_map<int,int, xenium::policy::reclaimer<Reclaimer>> vyukov_map;
 	vyukov_map map;
@@ -175,7 +190,7 @@ template <typename Distribution, typename Reclaimer>
   	std::default_random_engine generator;
 	std::uniform_real_distribution<double> uniform(0.0,1.0);
 	
-	omp_set_num_threads(n_threads);
+	omp_set_num_threads(thread_amount);
 
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	#pragma omp parallel for schedule(static,1) private(generator, uniform)
@@ -196,8 +211,6 @@ template <typename Distribution, typename Reclaimer>
 	}
 
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-
-	std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << "[ns]" << std::endl;
-	Test test_result = Test(1U, 1U, 1U);
-	return test_result;	
+	unsigned long elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+	return Test("Vyukov", elapsed_time, operations, thread_amount);
 };

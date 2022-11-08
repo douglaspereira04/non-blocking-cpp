@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/douglas/Documentos/non-blocking-cpp/. -isystem /home/douglas/Documentos/vcpkg/installed/x64-linux/include
+CXX_INCLUDES = -I/home/douglas/Documentos/non-blocking-cpp/.
 
-CXX_FLAGS =  -fopenmp -ltbb -std=c++11 -mcx16
+CXX_FLAGS =  -std=c++17 -fopenmp -ltbb
 
