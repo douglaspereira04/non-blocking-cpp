@@ -39,7 +39,7 @@ const std::size_t Buckets = 256;
 int main(int argc, char *argv[]){
     
     unsigned int max_n_threads = 64;
-    unsigned long max_operations = (unsigned long) 1E9;
+    unsigned long max_operations = (unsigned long) 1E7;
     std::size_t replications = 1;
 
     unsigned long pre_population = (unsigned long) 1E4;
@@ -114,23 +114,14 @@ int main(int argc, char *argv[]){
                         512>
                         (operations, thread_amount, 
                         pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
-                    append_to_file(test, 512,"quiescent_state_based");
+                    append_to_file(test, 512,"quiescent_state_based");  
 
-                    test =  Test::Vyukov<
-                        std::uniform_real_distribution<double>, 
-                        xenium::reclamation::hazard_pointer<>>
+                    test =  Test::WFCLabordeWaitFree<
+                        std::uniform_real_distribution<double>>
                         (operations, thread_amount, 
-                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
-                    append_to_file(test, 512,"hazard_pointer");
-
-                    test =  Test::Vyukov<
-                        std::uniform_real_distribution<double>, 
-                        xenium::reclamation::hazard_eras<>>
-                        (operations, thread_amount, 
-                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
-                    append_to_file(test, 512,"hazard_eras");
+                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution, 4);
+                    append_to_file(test, 0,"0");
             }
-            
         }
     }
     

@@ -7,6 +7,7 @@
 #include <xenium/harris_michael_hash_map.hpp>
 #include <xenium/vyukov_hash_map.hpp>
 #include <string>
+#include <wfc/unordered_map.hpp>
 
 
 class Test{
@@ -42,6 +43,11 @@ public:
 		static Test Vyukov(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
 		double setProportion, double deleteProportion, Distribution distribution);
+
+	template <typename Distribution> 
+		static Test WFCLabordeWaitFree(unsigned long operations, 
+		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
+		double setProportion, double deleteProportion, Distribution distribution, std::size_t node_array_size);
 
 	std::string Structure(){
 		return this->structure;
@@ -180,12 +186,13 @@ template <typename Distribution>
 	return Test("TBB", elapsed_time, operations, thread_amount);
 };
 
-template <typename Distribution, typename Reclaimer> 
-		Test Test::Vyukov(unsigned long operations, 
+template <typename Distribution> 
+		Test Test::WFCLabordeWaitFree(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
-		double setProportion, double deleteProportion, Distribution distribution){
-	typedef xenium::vyukov_hash_map<int,int, xenium::policy::reclaimer<Reclaimer>> vyukov_map;
-	vyukov_map map;
+		double setProportion, double deleteProportion, Distribution distribution, std::size_t node_array_size){
+	
+	typedef wfc::unordered_map<int,int> laborde_map;
+	laborde_map map(node_array_size, thread_amount, thread_amount);
 	
   	std::default_random_engine generator;
 	std::uniform_real_distribution<double> uniform(0.0,1.0);
@@ -200,17 +207,17 @@ template <typename Distribution, typename Reclaimer>
 
 		if (chance <= getProportion) {
 			// get
-			map.find(key);
+			map.get(key);
 		} else if (chance <= (getProportion + setProportion)) {
 			// set
-			map.emplace(key, key);
+			map.insert(key, key);
 		} else {
 			// delete
-			map.erase(key);
+			map.remove(key);
 		}
 	}
 
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	unsigned long elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
-	return Test("Vyukov", elapsed_time, operations, thread_amount);
+	return Test("LabordeWaitFree", elapsed_time, operations, thread_amount);
 };

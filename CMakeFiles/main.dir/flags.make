@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/douglas/Documentos/non-blocking-cpp/.
+CXX_INCLUDES = -I/home/douglas/Documentos/non-blocking-cpp/. -isystem /home/douglas/Documentos/non-blocking-cpp/WaitFreeCollections/include
 
-CXX_FLAGS =  -std=c++17 -fopenmp -ltbb
+CXX_FLAGS =  -fopenmp
 

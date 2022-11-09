@@ -414,6 +414,11 @@ CMakeFiles/main.dir/main.cpp.o: main.cpp \
   xenium/vyukov_hash_map.hpp \
   xenium/impl/vyukov_hash_map.hpp \
   xenium/impl/vyukov_hash_map_traits.hpp \
+  WaitFreeCollections/include/wfc/unordered_map.hpp \
+  /usr/include/c++/11/optional \
+  WaitFreeCollections/include/wfc/utility/thread_manipulation.hpp \
+  WaitFreeCollections/include/wfc/utility/math.hpp \
+  WaitFreeCollections/include/wfc/details/unordered_map/nodes.hpp \
   xenium/reclamation/lock_free_ref_count.hpp \
   xenium/reclamation/detail/allocation_tracker.hpp \
   xenium/reclamation/detail/concurrent_ptr.hpp \
@@ -467,6 +472,12 @@ xenium/marked_ptr.hpp:
 xenium/reclamation/detail/concurrent_ptr.hpp:
 
 xenium/reclamation/detail/allocation_tracker.hpp:
+
+WaitFreeCollections/include/wfc/details/unordered_map/nodes.hpp:
+
+WaitFreeCollections/include/wfc/utility/math.hpp:
+
+/usr/include/c++/11/optional:
 
 xenium/impl/vyukov_hash_map_traits.hpp:
 
@@ -660,6 +671,8 @@ xenium/reclamation/impl/lock_free_ref_count.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/local_lim.h:
 
+WaitFreeCollections/include/wfc/unordered_map.hpp:
+
 /usr/include/c++/11/bits/shared_ptr.h:
 
 /usr/include/c++/11/bits/stl_construct.h:
@@ -747,6 +760,8 @@ main.cpp:
 /usr/include/c++/11/cctype:
 
 /usr/include/c++/11/unordered_map:
+
+WaitFreeCollections/include/wfc/utility/thread_manipulation.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/stdint-intn.h:
 

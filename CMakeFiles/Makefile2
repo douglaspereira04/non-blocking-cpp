@@ -64,15 +64,32 @@ CMAKE_BINARY_DIR = /home/douglas/Documentos/non-blocking-cpp
 
 # The main recursive "all" target.
 all: CMakeFiles/main.dir/all
+all: WaitFreeCollections/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
-preinstall:
+preinstall: WaitFreeCollections/preinstall
 .PHONY : preinstall
 
 # The main recursive "clean" target.
 clean: CMakeFiles/main.dir/clean
+clean: WaitFreeCollections/clean
 .PHONY : clean
+
+#=============================================================================
+# Directory level rules for directory WaitFreeCollections
+
+# Recursive "all" directory target.
+WaitFreeCollections/all:
+.PHONY : WaitFreeCollections/all
+
+# Recursive "preinstall" directory target.
+WaitFreeCollections/preinstall:
+.PHONY : WaitFreeCollections/preinstall
+
+# Recursive "clean" directory target.
+WaitFreeCollections/clean:
+.PHONY : WaitFreeCollections/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/main.dir
