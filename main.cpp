@@ -10,9 +10,9 @@
 #include <xenium/reclamation/quiescent_state_based.hpp>
 #include <fstream>
 #include <string>
-/*
+
 #include <cds/container/feldman_hashmap_dhp.h>
-#include <cds/gc/hp.h>*/
+#include <cds/gc/hp.h>
 
 std::ofstream TEST_FILE;
 std::string TEST_FILE_NAME = "test.csv";
@@ -67,11 +67,11 @@ int main(int argc, char *argv[]){
                         pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
                     append_to_file(test, 0,"0");
 
-                    test = Test::TBBMap<
+                    /*test = Test::TBBMap<
                         std::uniform_real_distribution<double>>
                         (operations, thread_amount, 
                         pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
-                    append_to_file(test, 0,"0");
+                    append_to_file(test, 0,"0");*/
 
 
                     test = Test::HarrisMichaelMapTest<
@@ -127,10 +127,8 @@ int main(int argc, char *argv[]){
     
     
     
-    /*
     typedef cds::gc::HP gc_type;
     typedef cds::container::FeldmanHashMap< gc_type, int, int, cds::container::feldman_hashmap::traits> feldman_map;
     feldman_map map;
-    */
 
 }

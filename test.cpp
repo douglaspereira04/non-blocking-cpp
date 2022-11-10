@@ -3,7 +3,7 @@
 #include <random>
 #include <chrono>
 #include <unordered_map>
-#include <tbb/concurrent_hash_map.h>
+//#include <tbb/concurrent_hash_map.h>
 #include <xenium/harris_michael_hash_map.hpp>
 #include <xenium/vyukov_hash_map.hpp>
 #include <string>
@@ -33,11 +33,11 @@ public:
 		static Test LockUnorderedMap(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
 		double setProportion, double deleteProportion, Distribution distribution);
-
+/*
 	template <typename Distribution> 
 		static Test TBBMap(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
-		double setProportion, double deleteProportion, Distribution distribution);
+		double setProportion, double deleteProportion, Distribution distribution);*/
 
 	template <typename Distribution, typename Reclaimer> 
 		static Test Vyukov(unsigned long operations, 
@@ -148,7 +148,7 @@ template <typename Distribution>
 	unsigned long elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
 	return Test("LockUnordered", elapsed_time, operations, thread_amount);
 };
-
+/*
 template <typename Distribution> 
 		Test Test::TBBMap(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
@@ -185,6 +185,7 @@ template <typename Distribution>
 	unsigned long elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
 	return Test("TBB", elapsed_time, operations, thread_amount);
 };
+*/
 
 template <typename Distribution> 
 		Test Test::WFCLabordeWaitFree(unsigned long operations, 
