@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/home/douglas/Documentos/non-blocking-cpp/. -isystem /home/douglas/Documentos/non-blocking-cpp/cds
 
-CXX_FLAGS =  -fopenmp -O3
+CXX_FLAGS =  -fopenmp -O1
 

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 enable_language(CXX)
 set(CMAKE_CXX_STANDARD 17)
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -O3") 
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -O1") 
 
 add_library(cds SHARED IMPORTED)
 set_target_properties(cds 

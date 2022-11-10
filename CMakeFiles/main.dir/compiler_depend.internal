@@ -38,6 +38,7 @@ CMakeFiles/main.dir/main.cpp.o
  /usr/include/x86_64-linux-gnu/bits/types/FILE.h
  /usr/include/x86_64-linux-gnu/bits/types/locale_t.h
  /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h
+ /usr/include/x86_64-linux-gnu/bits/wchar2.h
  /usr/include/c++/11/exception
  /usr/include/c++/11/bits/exception.h
  /usr/include/c++/11/bits/exception_ptr.h
@@ -143,8 +144,11 @@ CMakeFiles/main.dir/main.cpp.o
  /usr/include/x86_64-linux-gnu/sys/select.h
  /usr/include/x86_64-linux-gnu/bits/select.h
  /usr/include/x86_64-linux-gnu/bits/types/sigset_t.h
+ /usr/include/x86_64-linux-gnu/bits/select2.h
  /usr/include/alloca.h
+ /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h
+ /usr/include/x86_64-linux-gnu/bits/stdlib.h
  /usr/include/c++/11/bits/std_abs.h
  /usr/include/c++/11/cstdio
  /usr/include/stdio.h
@@ -153,6 +157,8 @@ CMakeFiles/main.dir/main.cpp.o
  /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h
  /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h
  /usr/include/x86_64-linux-gnu/bits/stdio_lim.h
+ /usr/include/x86_64-linux-gnu/bits/stdio.h
+ /usr/include/x86_64-linux-gnu/bits/stdio2.h
  /usr/include/c++/11/cerrno
  /usr/include/errno.h
  /usr/include/x86_64-linux-gnu/bits/errno.h
@@ -275,6 +281,8 @@ CMakeFiles/main.dir/main.cpp.o
  /usr/include/c++/11/cstring
  /usr/include/string.h
  /usr/include/strings.h
+ /usr/include/x86_64-linux-gnu/bits/strings_fortified.h
+ /usr/include/x86_64-linux-gnu/bits/string_fortified.h
  /home/douglas/Documentos/non-blocking-cpp/xenium/impl/vyukov_hash_map_traits.hpp
  /home/douglas/Documentos/non-blocking-cpp/wfc/unordered_map.hpp
  /usr/include/c++/11/cstddef
@@ -293,35 +301,11 @@ CMakeFiles/main.dir/main.cpp.o
  /home/douglas/Documentos/non-blocking-cpp/wfc/utility/thread_manipulation.hpp
  /home/douglas/Documentos/non-blocking-cpp/wfc/utility/math.hpp
  /home/douglas/Documentos/non-blocking-cpp/wfc/details/unordered_map/nodes.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/lock_free_ref_count.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/detail/allocation_tracker.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/detail/concurrent_ptr.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/marked_ptr.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/detail/guard_ptr.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/impl/lock_free_ref_count.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/hazard_pointer.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/detail/deletable_object.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/detail/thread_block_list.hpp
- /usr/include/c++/11/iterator
- /usr/include/c++/11/bits/stream_iterator.h
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/impl/hazard_pointer.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/aligned_object.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/hazard_eras.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/impl/hazard_eras.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/stamp_it.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/impl/stamp_it.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/detail/perf_counter.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/quiescent_state_based.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/impl/quiescent_state_based.hpp
- /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/detail/orphan.hpp
- /usr/include/c++/11/fstream
- /usr/include/c++/11/bits/codecvt.h
- /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h
- /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h
- /usr/include/c++/11/bits/fstream.tcc
  /home/douglas/Documentos/non-blocking-cpp/cds/container/feldman_hashmap_dhp.h
  /home/douglas/Documentos/non-blocking-cpp/cds/container/impl/feldman_hashmap.h
  /home/douglas/Documentos/non-blocking-cpp/cds/intrusive/impl/feldman_hashset.h
+ /usr/include/c++/11/iterator
+ /usr/include/c++/11/bits/stream_iterator.h
  /home/douglas/Documentos/non-blocking-cpp/cds/intrusive/details/feldman_hashset_base.h
  /usr/include/memory.h
  /home/douglas/Documentos/non-blocking-cpp/cds/intrusive/details/base.h
@@ -398,6 +382,7 @@ CMakeFiles/main.dir/main.cpp.o
  /usr/include/x86_64-linux-gnu/bits/confname.h
  /usr/include/x86_64-linux-gnu/bits/getopt_posix.h
  /usr/include/x86_64-linux-gnu/bits/getopt_core.h
+ /usr/include/x86_64-linux-gnu/bits/unistd.h
  /usr/include/x86_64-linux-gnu/bits/unistd_ext.h
  /usr/include/linux/close_range.h
  /usr/include/x86_64-linux-gnu/bits/ss_flags.h
@@ -412,5 +397,29 @@ CMakeFiles/main.dir/main.cpp.o
  /home/douglas/Documentos/non-blocking-cpp/cds/threading/details/pthread_manager.h
  /home/douglas/Documentos/non-blocking-cpp/cds/intrusive/free_list_selector.h
  /home/douglas/Documentos/non-blocking-cpp/cds/intrusive/free_list.h
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/lock_free_ref_count.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/detail/allocation_tracker.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/detail/concurrent_ptr.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/marked_ptr.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/detail/guard_ptr.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/impl/lock_free_ref_count.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/hazard_pointer.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/detail/deletable_object.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/detail/thread_block_list.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/impl/hazard_pointer.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/aligned_object.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/hazard_eras.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/impl/hazard_eras.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/stamp_it.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/impl/stamp_it.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/detail/perf_counter.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/quiescent_state_based.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/impl/quiescent_state_based.hpp
+ /home/douglas/Documentos/non-blocking-cpp/xenium/reclamation/detail/orphan.hpp
+ /usr/include/c++/11/fstream
+ /usr/include/c++/11/bits/codecvt.h
+ /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h
+ /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h
+ /usr/include/c++/11/bits/fstream.tcc
  /home/douglas/Documentos/non-blocking-cpp/cds/gc/hp.h
 

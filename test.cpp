@@ -8,6 +8,7 @@
 #include <xenium/vyukov_hash_map.hpp>
 #include <string>
 #include <wfc/unordered_map.hpp>
+#include <cds/container/feldman_hashmap_dhp.h>
 
 
 class Test{
@@ -48,6 +49,11 @@ public:
 		static Test WFCLabordeWaitFree(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
 		double setProportion, double deleteProportion, Distribution distribution, std::size_t node_array_size);
+
+	template <typename Distribution, typename GarbageCollector> 
+		static Test LibCDSFeldman(unsigned long operations, 
+		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
+		double setProportion, double deleteProportion, Distribution distribution);
 
 	std::string Structure(){
 		return this->structure;
@@ -215,6 +221,44 @@ template <typename Distribution>
 		} else {
 			// delete
 			map.remove(key);
+		}
+	}
+
+	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+	unsigned long elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+	return Test("LabordeWaitFree", elapsed_time, operations, thread_amount);
+};
+
+template <typename Distribution, typename GarbageCollector> 
+		Test Test::LibCDSFeldman(unsigned long operations, 
+		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
+		double setProportion, double deleteProportion, Distribution distribution){
+	
+    typedef cds::container::FeldmanHashMap<
+		GarbageCollector, int, int, 
+		cds::container::feldman_hashmap::traits> feldman_map;
+    feldman_map map;
+	
+  	std::default_random_engine generator;
+	std::uniform_real_distribution<double> uniform(0.0,1.0);
+	
+	omp_set_num_threads(thread_amount);
+
+	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+	#pragma omp parallel for schedule(static,1) private(generator, uniform)
+	for (size_t i = 0; i < operations; i++){
+		double chance = uniform(generator);
+		int key = (int)distribution(generator);
+
+		if (chance <= getProportion) {
+			// get
+			map.get(key);
+		} else if (chance <= (getProportion + setProportion)) {
+			// set
+			map.insert(key, key);
+		} else {
+			// delete
+			map.erase(key);
 		}
 	}
 
