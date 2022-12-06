@@ -10,7 +10,6 @@
 #include <xenium/reclamation/quiescent_state_based.hpp>
 #include <fstream>
 #include <string>
-#include <cds/gc/hp.h>
 
 std::ofstream TEST_FILE;
 std::string TEST_FILE_NAME = "test.csv";
@@ -42,20 +41,22 @@ void print_test(Test test, std::size_t buckets, std::string reclamation){
         << buckets << ","
         << reclamation << "\n";
 }
-
+template <typename Distribution, typename ...DistributionArgs>
 void test(
     unsigned int max_n_threads, 
     unsigned long min_operations, 
     unsigned long max_operations, 
     std::size_t replications, 
     unsigned long pre_population, 
-    double get_proportionn, 
+    double get_proportion, 
     double set_proportion, 
-    double delete_proportion
+    double delete_proportion,
+    DistributionArgs... distribution_args
     ){
 
     std::default_random_engine generator;
     clear_file();
+    Distribution distribution(distribution_args...);
 
     for (size_t i = 0; i < replications; i++)
     {
@@ -69,23 +70,22 @@ void test(
                     Test test = Test::LockUnorderedMap<
                         std::uniform_real_distribution<double>>
                         (operations, thread_amount, 
-                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
+                        pre_population, get_proportion, set_proportion, delete_proportion, distribution);
                     append_to_file(test, 0,"0");
                     print_test(test, 0,"0");
-
-                    /*test = Test::TBBMap<
+                    
+                    test = Test::TBBMap<
                         std::uniform_real_distribution<double>>
                         (operations, thread_amount, 
-                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
-                    append_to_file(test, 0,"0");*/
-
+                        pre_population, get_proportion, set_proportion, delete_proportion, distribution);
+                    append_to_file(test, 0,"0");
 
                     test = Test::HarrisMichaelMapTest<
                         std::uniform_real_distribution<double>, 
                         xenium::reclamation::lock_free_ref_count<>,
                         512>
                         (operations, thread_amount, 
-                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
+                        pre_population, get_proportion, set_proportion, delete_proportion, distribution);
                     append_to_file(test, 512,"lock_free_ref_count");
                     print_test(test, 512,"lock_free_ref_count");
 
@@ -95,7 +95,7 @@ void test(
                         xenium::reclamation::hazard_pointer<>,
                         512>
                         (operations, thread_amount, 
-                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
+                        pre_population, get_proportion, set_proportion, delete_proportion, distribution);
                     append_to_file(test, 512,"hazard_pointer");
                     print_test(test, 512,"hazard_pointer");
                     
@@ -105,7 +105,7 @@ void test(
                         xenium::reclamation::hazard_eras<>,
                         512>
                         (operations, thread_amount, 
-                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
+                        pre_population, get_proportion, set_proportion, delete_proportion, distribution);
                     append_to_file(test, 512,"hazard_eras");
                     print_test(test, 512,"hazard_eras");
 
@@ -114,7 +114,7 @@ void test(
                         xenium::reclamation::stamp_it,
                         512>
                         (operations, thread_amount, 
-                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
+                        pre_population, get_proportion, set_proportion, delete_proportion, distribution);
                     append_to_file(test, 512,"stamp_it");
                     print_test(test, 512,"stamp_it");
                         
@@ -123,31 +123,36 @@ void test(
                         xenium::reclamation::quiescent_state_based,
                         512>
                         (operations, thread_amount, 
-                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
+                        pre_population, get_proportion, set_proportion, delete_proportion, distribution);
                     append_to_file(test, 512,"quiescent_state_based");
                     print_test(test, 512,"quiescent_state_based");  
 
                     test =  Test::WFCLabordeWaitFree<
                         std::uniform_real_distribution<double>>
                         (operations, thread_amount, 
-                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution, 4);
+                        pre_population, get_proportion, set_proportion, delete_proportion, distribution, 4);
                     append_to_file(test, 0,"0");
                     print_test(test, 0,"0");
 
-                    test =  Test::LibCDSFeldman<
-                        std::uniform_real_distribution<double>, cds::gc::HP>
-                        (operations, thread_amount, 
-                        pre_population, get_proportionn, set_proportion, delete_proportion, uniform_distribution);
-                    append_to_file(test, 0,"0");
-                    print_test(test, 0,"0");
+                    test = Test::LibCDSFeldman<Distribution, DistributionArgs...>(
+                        operations, thread_amount, pre_population, get_proportion, 
+                        set_proportion, delete_proportion, distribution_args...);
+                    print_test(test, 0,"HP");
             }
         }
     }
 }
 
+struct update_functor {
+    // For FeldmanHashMap, IterableList
+    template <typename Val>
+    void operator()( Val& cur, Val * old )
+    {}
+};
+
 int main(int argc, char *argv[]){
     
-    unsigned int max_n_threads = 64;
+    unsigned int max_n_threads = 2;
     unsigned long min_operations = (unsigned long) 1E6;
     unsigned long max_operations = (unsigned long) 1E7;
     std::size_t replications = 1;
@@ -159,9 +164,16 @@ int main(int argc, char *argv[]){
     double delete_proportion = 0.1;
 
     //std::normal_distribution<double> normal_distribution(10000, 200);
-    std::uniform_real_distribution<double> uniform_distribution(-1e9, 1e9);
 
-    
-    
-
+    test<std::uniform_real_distribution<double>, double, double>(
+        max_n_threads, 
+        min_operations, 
+        max_operations, 
+        replications, 
+        pre_population, 
+        get_proportionn, 
+        set_proportion, 
+        delete_proportion,
+        -1e9, 1e9
+    );
 }
