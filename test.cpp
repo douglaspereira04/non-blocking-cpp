@@ -3,13 +3,16 @@
 #include <random>
 #include <chrono>
 #include <unordered_map>
-//#include <tbb/concurrent_hash_map.h>
+#include <tbb/concurrent_hash_map.h>
 #include <xenium/harris_michael_hash_map.hpp>
 #include <xenium/vyukov_hash_map.hpp>
 #include <string>
 #include <wfc/unordered_map.hpp>
-#include <cds/container/feldman_hashmap_dhp.h>
 
+#include <cds/container/feldman_hashmap_hp.h>
+#include <cds/init.h>       // for cds::Initialize and cds::Terminate
+#include <cds/gc/hp.h> 
+#include<thread>
 
 class Test{
 protected:
@@ -34,11 +37,11 @@ public:
 		static Test LockUnorderedMap(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
 		double setProportion, double deleteProportion, Distribution distribution);
-/*
+		
 	template <typename Distribution> 
 		static Test TBBMap(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
-		double setProportion, double deleteProportion, Distribution distribution);*/
+		double setProportion, double deleteProportion, Distribution distribution);
 
 	template <typename Distribution, typename Reclaimer> 
 		static Test Vyukov(unsigned long operations, 
@@ -50,10 +53,15 @@ public:
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
 		double setProportion, double deleteProportion, Distribution distribution, std::size_t node_array_size);
 
-	template <typename Distribution, typename GarbageCollector> 
-		static Test LibCDSFeldman(unsigned long operations, 
+	template <typename Distribution, typename ...DistributionArgs> 
+		static Test LibCDSFeldman(unsigned long operations, unsigned int thread_amount, 
+		unsigned long pre_population, double get_proportion, double set_proportion, 
+		double delete_proportion, DistributionArgs... distribution_args);
+/*
+	template <typename Distribution> 
+		static Test TervelFeldman(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
-		double setProportion, double deleteProportion, Distribution distribution);
+		double setProportion, double deleteProportion, Distribution distribution);*/
 
 	std::string Structure(){
 		return this->structure;
@@ -154,7 +162,7 @@ template <typename Distribution>
 	unsigned long elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
 	return Test("LockUnordered", elapsed_time, operations, thread_amount);
 };
-/*
+
 template <typename Distribution> 
 		Test Test::TBBMap(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
@@ -191,7 +199,7 @@ template <typename Distribution>
 	unsigned long elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
 	return Test("TBB", elapsed_time, operations, thread_amount);
 };
-*/
+
 
 template <typename Distribution> 
 		Test Test::WFCLabordeWaitFree(unsigned long operations, 
@@ -229,16 +237,93 @@ template <typename Distribution>
 	return Test("LabordeWaitFree", elapsed_time, operations, thread_amount);
 };
 
-template <typename Distribution, typename GarbageCollector> 
-		Test Test::LibCDSFeldman(unsigned long operations, 
+template<typename Distribution, typename ...DistributionArgs>
+void LibCDSFeldmanMapThreadWork(cds::container::FeldmanHashMap<cds::gc::HP,int,int> &map, unsigned long operations, 
+    double get_proportion, double set_proportion, double delete_proportion,
+    DistributionArgs... distribution_args){
+
+	typedef cds::container::FeldmanHashMap<cds::gc::HP,int,int>::guarded_ptr GuardedPointer;
+		
+	std::default_random_engine generator;
+	Distribution distribution(distribution_args...);
+	std::uniform_real_distribution<double> uniform(0.0,1.0);
+
+	cds::threading::Manager::attachThread();
+	namespace cc = cds::container;
+
+	for (size_t i = 0; i < operations; i++){
+		double chance = uniform(generator);
+		int key = (int)distribution(generator);
+
+		if (chance <= get_proportion) {
+			// get
+			GuardedPointer gp;
+			gp = GuardedPointer( map.get(key));
+			if(gp){}
+		} else if (chance <= (get_proportion + set_proportion)) {
+			// set
+			GuardedPointer gp;
+			gp = GuardedPointer( map.get(key));
+			if ( gp ) {
+				//gp->second = key;
+			}else{
+				//map.update( key, key );
+			}
+		} else {
+			// delete
+			map.erase(key);
+		}
+	}
+
+	cds::threading::Manager::detachThread();
+};
+
+template <typename Distribution, typename ...DistributionArgs> 
+Test Test::LibCDSFeldman(unsigned long operations, unsigned int thread_amount, 
+	unsigned long pre_population, double get_proportion, double set_proportion, 
+	double delete_proportion, DistributionArgs... distribution_args){
+
+	namespace cc = cds::container;
+	typedef cds::gc::HP GC;
+	typedef cc::FeldmanHashMap< GC, int, int> FeldmanMap;
+	typedef typename FeldmanMap::guarded_ptr GuardedPointer;
+	
+	unsigned long elapsed_time;
+	
+	std::thread thread[thread_amount];
+    cds::Initialize();
+    {
+        GC gc;
+        cds::threading::Manager::attachThread();
+        FeldmanMap map;
+
+		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+		for (size_t i = 0; i < thread_amount; i++){
+			thread[i] = std::thread(LibCDSFeldmanMapThreadWork<Distribution, DistributionArgs...>, std::ref(map), operations, get_proportion, 
+				set_proportion, delete_proportion, distribution_args...);
+		}
+
+		for (size_t i = 0; i < thread_amount; i++){
+			thread[i].join();
+		}
+
+		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+		elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+		
+    }    
+    cds::Terminate();
+	
+	return Test("FeldmanCDS", elapsed_time, operations, thread_amount);
+
+};
+
+/*
+template <typename Distribution> 
+		Test Test::TervelFeldman(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
 		double setProportion, double deleteProportion, Distribution distribution){
-	
-    typedef cds::container::FeldmanHashMap<
-		GarbageCollector, int, int, 
-		cds::container::feldman_hashmap::traits> feldman_map;
-    feldman_map map;
-	
+	typedef typename tervel::containers::wf::HashMap<int, int> feldman_map;
+	typedef typename feldman_map::ValueAccessor Accessor;
   	std::default_random_engine generator;
 	std::uniform_real_distribution<double> uniform(0.0,1.0);
 	
@@ -264,5 +349,5 @@ template <typename Distribution, typename GarbageCollector>
 
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	unsigned long elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
-	return Test("LabordeWaitFree", elapsed_time, operations, thread_amount);
-};
+	return Test("FeldmanCDS", elapsed_time, operations, thread_amount);
+};*/
