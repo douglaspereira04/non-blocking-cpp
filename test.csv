@@ -1,9 +1,0 @@
-Structure,Elapsed Time,Operations,Threads,Throughput,BucketAmount,Reclamation
-LockUnordered,66344267,1000000,2,150728924,0,0
-TBB,44069152,1000000,2,226916097,0,0
-XeniumHarrisMichael,681794850,1000000,2,14667168,512,lock_free_ref_count
-XeniumHarrisMichael,353882164,1000000,2,28257993,512,hazard_pointer
-XeniumHarrisMichael,394591280,1000000,2,25342678,512,hazard_eras
-XeniumHarrisMichael,433995398,1000000,2,23041718,512,stamp_it
-XeniumHarrisMichael,349413593,1000000,2,28619378,512,quiescent_state_based
-LabordeWaitFree,82675439,1000000,2,120954906,0,0
