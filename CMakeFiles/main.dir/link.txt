@@ -1,1 +1,0 @@
-/usr/bin/c++  -fopenmp -O3 -mcx16 CMakeFiles/main.dir/main.cpp.o -o main  -Wl,-rpath,/usr/local/lib64 /usr/lib/x86_64-linux-gnu/libtbb.so.12.5 /usr/local/lib64/libcds.so.2.3.3 
