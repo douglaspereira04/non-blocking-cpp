@@ -10,6 +10,9 @@
 #include <xenium/reclamation/quiescent_state_based.hpp>
 #include <fstream>
 #include <string>
+#include <cds/gc/dhp.h>
+#include <cds/gc/hp.h>
+#include <cds/urcu/general_buffered.h>
 
 std::ofstream TEST_FILE;
 std::string TEST_FILE_NAME = "test.csv";
@@ -79,6 +82,7 @@ void test(
                         (operations, thread_amount, 
                         pre_population, get_proportion, set_proportion, delete_proportion, distribution);
                     append_to_file(test, 0,"0");
+                    print_test(test, 0,"0");
 
                     test = Test::HarrisMichaelMapTest<
                         std::uniform_real_distribution<double>, 
@@ -134,10 +138,18 @@ void test(
                     append_to_file(test, 0,"0");
                     print_test(test, 0,"0");
 
-                    test = Test::LibCDSFeldman<Distribution, DistributionArgs...>(
+	                typedef cds::gc::HP CDSHP;
+                    test = Test::LibCDSFeldman<CDSHP, Distribution, DistributionArgs...>(
                         operations, thread_amount, pre_population, get_proportion, 
                         set_proportion, delete_proportion, distribution_args...);
                     print_test(test, 0,"HP");
+
+	                typedef cds::gc::DHP CDSDHP;
+                    test = Test::LibCDSFeldman<CDSDHP, Distribution, DistributionArgs...>(
+                        operations, thread_amount, pre_population, get_proportion, 
+                        set_proportion, delete_proportion, distribution_args...);
+                    print_test(test, 0,"DHP");
+
             }
         }
     }
