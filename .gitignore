@@ -37,3 +37,4 @@ CMakeFiles
 *.csv
 .vscode
 cmake_install.cmake
+main
