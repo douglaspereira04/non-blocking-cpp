@@ -12,11 +12,10 @@ project(test)
 include_directories(".")
 add_executable(main main.cpp)
 
-
-add_custom_target(run
-    COMMAND ./main
-    WORKING_DIRECTORY ${CMAKE_PROJECT_DIR}
-)
-
 target_link_libraries(main TBB::tbb LibCDS::cds)
 
+add_custom_target(run
+    COMMAND main
+    DEPENDS main
+    WORKING_DIRECTORY ${CMAKE_PROJECT_DIR}
+)

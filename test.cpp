@@ -93,6 +93,18 @@ template <typename Reclaimer, std::size_t Buckets, typename Distribution, typena
 		<int, int, xenium::policy::reclaimer
 			<Reclaimer>, xenium::policy::buckets<Buckets>> map;
 
+	
+	{//populacao inicial
+		std::default_random_engine generator;
+		Distribution distribution(distribution_args...);
+		std::uniform_real_distribution<double> uniform(0.0,1.0);
+		for (size_t i = 0; i < pre_population; i++){
+			double chance = uniform(generator);
+			int key = (int)distribution(generator);
+			map.emplace(key, key);
+		}
+	}
+	
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
 	for (size_t i = 0; i < thread_amount; i++){
@@ -139,6 +151,17 @@ Test Test::LockUnorderedMap(unsigned long operations, unsigned int thread_amount
 	std::thread thread[thread_amount];
 	std::unordered_map<int, int> map;
 	
+	{//populacao inicial
+		std::default_random_engine generator;
+		Distribution distribution(distribution_args...);
+		std::uniform_real_distribution<double> uniform(0.0,1.0);
+		for (size_t i = 0; i < pre_population; i++){
+			double chance = uniform(generator);
+			int key = (int)distribution(generator);
+			map.emplace(key, key);
+		}
+	}
+
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
 	for (size_t i = 0; i < thread_amount; i++){
@@ -190,6 +213,19 @@ Test Test::TBBMap(unsigned long operations, unsigned int thread_amount,
 	typedef tbb::concurrent_hash_map<int,int> tbb_map;
 	tbb_map map;
 	
+
+	{//populacao inicial
+		std::default_random_engine generator;
+		Distribution distribution(distribution_args...);
+		std::uniform_real_distribution<double> uniform(0.0,1.0);
+		for (size_t i = 0; i < pre_population; i++){
+			double chance = uniform(generator);
+			int key = (int)distribution(generator);
+			tbb_map::accessor a;
+			map.emplace(a, key, key);
+		}
+	}
+
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
 	for (size_t i = 0; i < thread_amount; i++){
@@ -237,6 +273,16 @@ Test Test::WFCLabordeWaitFree(unsigned long operations, unsigned int thread_amou
 	std::thread thread[thread_amount];
 	wfc::unordered_map<int,int> map(node_array_size, thread_amount, thread_amount);
 
+	{//populacao inicial
+		std::default_random_engine generator;
+		Distribution distribution(distribution_args...);
+		std::uniform_real_distribution<double> uniform(0.0,1.0);
+		for (size_t i = 0; i < pre_population; i++){
+			double chance = uniform(generator);
+			int key = (int)distribution(generator);
+			map.insert(key,key);
+		}
+	}
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
 	for (size_t i = 0; i < thread_amount; i++){
@@ -287,6 +333,17 @@ Test Test::LibCDSFeldman(unsigned long operations, unsigned int thread_amount,
         cds::container::FeldmanHashMap<GC, int, int> map;
 		typedef typename cds::container::FeldmanHashMap<GC, int, int>::guarded_ptr GuardedPointer;
 
+		{//populacao inicial
+			std::default_random_engine generator;
+			Distribution distribution(distribution_args...);
+			std::uniform_real_distribution<double> uniform(0.0,1.0);
+			for (size_t i = 0; i < pre_population; i++){
+				double chance = uniform(generator);
+				int key = (int)distribution(generator);
+				map.insert(key,key);
+			}
+		}
+		
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 		
 		for (size_t i = 0; i < thread_amount; i++){
@@ -298,7 +355,7 @@ Test Test::LibCDSFeldman(unsigned long operations, unsigned int thread_amount,
 
 				cds::threading::Manager::attachThread();
 
-				for (size_t i = 0; i < operations; i++){
+				for (size_t i = 0; i < operations/thread_amount; i++){
 					double chance = uniform(generator);
 					int key = (int)distribution(generator);
 
@@ -306,7 +363,6 @@ Test Test::LibCDSFeldman(unsigned long operations, unsigned int thread_amount,
 						// get
 						GuardedPointer gp;
 						gp = GuardedPointer( map.get(key));
-						if(gp){}
 					} else if (chance <= (get_proportion + set_proportion)) {
 						// set
 						map.insert(key,key);

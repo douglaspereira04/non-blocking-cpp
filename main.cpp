@@ -69,7 +69,7 @@ void test(
     append_to_file(test, 0,"0");
     print_test(test, 0,"0");
 
-    test = Test::HarrisMichaelMapTest<
+    /*test = Test::HarrisMichaelMapTest<
         xenium::reclamation::lock_free_ref_count<>,
         512, Distribution, DistributionArgs...>
         (operations, thread_amount, pre_population, get_proportion, 
@@ -109,7 +109,7 @@ void test(
         (operations, thread_amount, pre_population, get_proportion, 
         set_proportion, delete_proportion, distribution_args...);
     append_to_file(test, 512,"quiescent_state_based");
-    print_test(test, 512,"quiescent_state_based");  
+    print_test(test, 512,"quiescent_state_based");  */
 
     test =  Test::WFCLabordeWaitFree<4, Distribution, DistributionArgs...>
         (operations, thread_amount, pre_population, get_proportion, 
@@ -135,13 +135,13 @@ void test(
 int main(int argc, char *argv[]){
     
     unsigned int thread_amount = 16;
-    unsigned long operations = (unsigned long) 1E7;
+    unsigned long operations = (unsigned long) 1E9;
 
-    unsigned long pre_population = (unsigned long) 1E4;
+    unsigned long pre_population = (unsigned long) 1E7;
 
-    double get_proportionn = 0.7;
-    double set_proportion = 0.2;
-    double delete_proportion = 0.1;
+    double get_proportionn = 0.9;
+    double set_proportion = 0.05;
+    double delete_proportion = 0.05;
 
     test<std::uniform_real_distribution<double>, double, double>(
         thread_amount, 
