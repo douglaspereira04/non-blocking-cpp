@@ -9,6 +9,9 @@
 
 #include <cds/container/feldman_hashmap_hp.h>
 #include <cds/container/feldman_hashmap_dhp.h>
+#include <cds/container/michael_kvlist_hp.h>
+#include <cds/container/michael_kvlist_dhp.h>
+#include <cds/container/michael_map.h>
 #include <cds/init.h>
 #include <thread>
 #include <mutex>
@@ -23,7 +26,7 @@ protected:
 	double throughput;
 
 public:
-
+	Test();
 	Test(std::string structure, unsigned long elapsed_time, unsigned long operations, unsigned int thread_amount);
 	~Test();
 	
@@ -51,6 +54,11 @@ template <typename Reclaimer, std::size_t Buckets, typename Distribution, typena
 		static Test LibCDSFeldman(unsigned long operations, unsigned int thread_amount, 
 		unsigned long pre_population, double get_proportion, double set_proportion, 
 		double delete_proportion, DistributionArgs... distribution_args);
+
+	template <typename GC, size_t MaxItemCount, size_t LoadFactor, typename Distribution, typename ...DistributionArgs> 
+		static Test LibCDSMichael(unsigned long operations, unsigned int thread_amount, 
+		unsigned long pre_population, double get_proportion, double set_proportion, 
+		double delete_proportion, DistributionArgs... distribution_args);
 		
 
 	std::string Structure(){
@@ -70,7 +78,9 @@ template <typename Reclaimer, std::size_t Buckets, typename Distribution, typena
 	};
 };
 
+Test::Test(){
 
+};
 Test::Test(std::string structure, unsigned long elapsed_time, unsigned long operations, unsigned int thread_amount){
 	Test::structure = structure;
 	Test::elapsed_time = elapsed_time;
@@ -104,7 +114,7 @@ template <typename Reclaimer, std::size_t Buckets, typename Distribution, typena
 			map.emplace(key, key);
 		}
 	}
-	
+
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
 	for (size_t i = 0; i < thread_amount; i++){
@@ -361,8 +371,7 @@ Test Test::LibCDSFeldman(unsigned long operations, unsigned int thread_amount,
 
 					if (chance <= get_proportion) {
 						// get
-						GuardedPointer gp;
-						gp = GuardedPointer( map.get(key));
+						GuardedPointer gp = GuardedPointer( map.get(key));
 					} else if (chance <= (get_proportion + set_proportion)) {
 						// set
 						map.insert(key,key);
@@ -387,5 +396,76 @@ Test Test::LibCDSFeldman(unsigned long operations, unsigned int thread_amount,
     cds::Terminate();
 	
 	return Test("FeldmanCDS", elapsed_time, operations, thread_amount);
+
+};
+
+template <typename GC, size_t MaxItemCount, size_t LoadFactor, typename Distribution, typename ...DistributionArgs> 
+Test Test::LibCDSMichael(unsigned long operations, unsigned int thread_amount, 
+	unsigned long pre_population, double get_proportion, double set_proportion, 
+	double delete_proportion, DistributionArgs... distribution_args){
+	
+	unsigned long elapsed_time;
+	
+	std::thread thread[thread_amount];
+    cds::Initialize();
+    {
+        GC gc;
+        cds::threading::Manager::attachThread();
+	
+		cds::container::MichaelHashMap<GC, cds::container::MichaelKVList<GC, int, int>> map(MaxItemCount, LoadFactor);
+		typedef typename cds::container::MichaelHashMap<GC, cds::container::MichaelKVList<GC, int, int>>::guarded_ptr GuardedPointer;
+
+		{//populacao inicial
+			std::default_random_engine generator;
+			Distribution distribution(distribution_args...);
+			std::uniform_real_distribution<double> uniform(0.0,1.0);
+			for (size_t i = 0; i < pre_population; i++){
+				double chance = uniform(generator);
+				int key = (int)distribution(generator);
+				map.insert(key,key);
+			}
+		}
+		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+		for (size_t i = 0; i < thread_amount; i++){
+			thread[i] = std::thread([&](){
+		
+				std::default_random_engine generator;
+				Distribution distribution(distribution_args...);
+				std::uniform_real_distribution<double> uniform(0.0,1.0);
+
+				cds::threading::Manager::attachThread();
+
+				for (size_t i = 0; i < operations/thread_amount; i++){
+					double chance = uniform(generator);
+					int key = (int)distribution(generator);
+
+					if (chance <= get_proportion) {
+						// get
+						GuardedPointer gp = GuardedPointer( map.get(key));
+					} else if (chance <= (get_proportion + set_proportion)) {
+						// set
+						map.insert(key,key);
+					} else {
+						// delete
+						map.erase(key);
+					}
+				}
+
+				cds::threading::Manager::detachThread();
+			});
+		}
+
+		for (size_t i = 0; i < thread_amount; i++){
+			thread[i].join();
+		}
+
+		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+		elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+		
+    }    
+    cds::Terminate();
+	
+	return Test("MichaelCDS", elapsed_time, operations, thread_amount);
 
 };
