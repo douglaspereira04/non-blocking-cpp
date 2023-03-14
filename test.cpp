@@ -287,7 +287,7 @@ Test Test::WFCUnorderedMap(unsigned long operations, unsigned int thread_amount,
 	
 	unsigned long elapsed_time;
 	std::thread thread[thread_amount];
-	wfc::unordered_map<uint32_t,ValueType> map(node_array_size, thread_amount+1, thread_amount+1);
+	wfc::unordered_map<uint32_t,ValueType> map(node_array_size, thread_amount, thread_amount);
 
 	{//populacao inicial
 		for (uint32_t i = 0; i < pre_population; i++){

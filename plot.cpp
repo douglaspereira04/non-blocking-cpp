@@ -6,11 +6,11 @@
 #include <numeric>
 #include <vector>
 
-double average(std::vector<long> const& v){
+double average(std::vector<double> const& v){
     if(v.empty()){
         return 0;
     }
-    long long sum = 0;
+    long double sum = 0;
     for (auto &&i : v)
     {
         sum += i;
@@ -375,11 +375,11 @@ std::vector<std::string> test = {
 
 
 void plot_files(std::vector<std::string> files, std::string image_name, bool no_lock_unordered, std::string folder){
-    std::unordered_map<std::string, std::vector<std::vector<long>>> map;
+    std::unordered_map<std::string, std::vector<std::vector<double>>> map;
     std::unordered_map<std::string, std::vector<double>> avg_map;
 
-    long highest = 0;
-    long lowest = std::numeric_limits<long>::max();
+    double highest = 0;
+    double lowest = std::numeric_limits<double>::max();
     for (auto &&file_name : files)
     {
         std::ifstream infile(file_name);
@@ -390,29 +390,37 @@ void plot_files(std::vector<std::string> files, std::string image_name, bool no_
             std::istringstream  ss(line);
 
             getline(ss, temp, ',');
+            size_t space_pos = temp.find(" ");    
+            if (space_pos != std::string::npos) {
+                temp = temp.substr(0,space_pos + 1);
+            }
             std::string name = temp;
 
             getline(ss, temp, ',');
             int threads = std::stoi(temp);
 
             getline(ss, temp, ',');
-            long elapsed_time = std::stol(temp);
+            double elapsed_time = std::stol(temp)/1000000000.0;
 
 
             if(map.find(name) == map.end()){
-                std::vector<std::vector<long>> v(4);
+                std::vector<std::vector<double>> v(4);
                 map.emplace(name, v);
 
                 std::vector<double> avgv(4,0.0);
                 avg_map.emplace(name, avgv);
             }
 
-            map[name][((int)log2(threads))-2].push_back(elapsed_time);
+            if(threads != 2){
+                int pos = ((int)log2(threads))-2;
+                map[name][pos].push_back(elapsed_time);
+            }
         }
+
         for (const auto& kv : map) {
             int i = 0;
             for (auto list : kv.second){
-                if((kv.first == "LockUnordered" || kv.first == "WFCUnorderedMap 16") && no_lock_unordered){
+                if((kv.first == "LockUnordered" /*|| kv.first == "WFCUnorderedMap "*/) && no_lock_unordered){
                     continue;
                 }
                 double avg;
@@ -427,8 +435,6 @@ void plot_files(std::vector<std::string> files, std::string image_name, bool no_
                 if(avg <= lowest ){
                     lowest = avg;
                 }
-                
-                std::cout << kv.first << " " << pow(2, i+1) << " " << avg << "\n";
             }
             
         }
@@ -436,11 +442,13 @@ void plot_files(std::vector<std::string> files, std::string image_name, bool no_
     
     
     std::vector<double> x = {1,2,3,4};
+    std::cout << "LibCDSMichael " << avg_map["LibCDSMichael "][0] << avg_map["LibCDSMichael "][1] << std::endl;
+    std::cout << "TBB " << avg_map["TBB"][0] << avg_map["TBB"][1] << std::endl;
 
     std::vector<std::string> legend_vector;
     if(no_lock_unordered){
         avg_map.erase("LockUnordered");
-        avg_map.erase("WFCUnorderedMap 16");
+        //avg_map.erase("WFCUnorderedMap ");
     }
     for (const auto& kv : avg_map) {
         matplot::plot(x, kv.second, "-o");
@@ -449,8 +457,8 @@ void plot_files(std::vector<std::string> files, std::string image_name, bool no_
     }
 
     matplot::xticks({0,1,2,3,4,5});
-    matplot::xticklabels({" ", "4", "8","16","32", " "});
-    matplot::xrange({0.8,4.2});
+    matplot::xticklabels({" ","4","8","16","32", " "});
+    matplot::xrange({0.9,4.1});
     std::cout << lowest << std::endl;
     std::string lowstr = std::to_string(lowest);
     for (size_t i = 1; i < lowstr.size(); i++)
@@ -458,16 +466,16 @@ void plot_files(std::vector<std::string> files, std::string image_name, bool no_
         lowstr[i] = '0';
     }
     std::cout << std::stol(lowstr) << std::endl;
-    matplot::ylim({std::stol(lowstr)*1.0,highest*1.05});
     
     matplot::grid(matplot::on);
     matplot::xlabel("Threads");
-    matplot::ylabel("Tempo de execução (ns)");
+    matplot::ylabel("Tempo de execução (s)");
     auto lgd = matplot::legend(legend_vector);
     lgd->inside(false);
     lgd->location(matplot::legend::general_alignment::right);
     std::string path = image_name;
     path = "./"+folder+path+".png";
+    matplot::title(image_name);
     matplot::save(path);
     matplot::hold(false);
 }
@@ -478,49 +486,55 @@ void plot_file(std::string file, bool no_lock_unordered, std::string folder){
 }
 
 void plot_all(bool no_lock_unordered, std::string folder){
+    plot_files(all, "geral", no_lock_unordered, folder+"outros/");
+    plot_files(many_big, "muitas_grandes", no_lock_unordered, folder+"outros/");
 
-    plot_files(all, "geral", no_lock_unordered, folder+"geral/");
-    plot_files(small, "pequenos", no_lock_unordered, folder+"geral/");
-    plot_files(big, "grandes", no_lock_unordered, folder+"geral/");
+    plot_files(small, "pequenos", no_lock_unordered, folder+"outros/");
+    plot_files(big, "grandes", no_lock_unordered, folder+"outros/");
 
-    plot_files(dist_a, "dist_a", no_lock_unordered, folder+"geral/");
-    plot_files(dist_a_many, "dist_a_muitas", no_lock_unordered, folder+"geral/");
-    plot_files(dist_a_few, "dist_a_poucas", no_lock_unordered, folder+"geral/");
+    plot_files(dist_a, "dist_a", no_lock_unordered, folder+"outros/");
+    plot_files(dist_a_many, "dist_a_muitas", no_lock_unordered, folder+"outros/");
+    plot_files(dist_a_few, "dist_a_poucas", no_lock_unordered, folder+"outros/");
 
-    plot_files(dist_b, "dist_b", no_lock_unordered, folder+"geral/");
-    plot_files(dist_b_many, "dist_b_muitas", no_lock_unordered, folder+"geral/");
-    plot_files(dist_b_few, "dist_b_poucas", no_lock_unordered, folder+"geral/");
+    plot_files(dist_b, "dist_b", no_lock_unordered, folder+"outros/");
+    plot_files(dist_b_many, "dist_b_muitas", no_lock_unordered, folder+"outros/");
+    plot_files(dist_b_few, "dist_b_poucas", no_lock_unordered, folder+"outros/");
 
-    plot_files(dist_c, "dist_c", no_lock_unordered, folder+"geral/");
-    plot_files(dist_c_many, "dist_c_muitas", no_lock_unordered, folder+"geral/");
-    plot_files(dist_c_few, "dist_c_poucas", no_lock_unordered, folder+"geral/");
+    plot_files(dist_c, "dist_c", no_lock_unordered, folder+"outros/");
+    plot_files(dist_c_many, "dist_c_muitas", no_lock_unordered, folder+"outros/");
+    plot_files(dist_c_few, "dist_c_poucas", no_lock_unordered, folder+"outros/");
 
-    plot_files(empty, "vazia", no_lock_unordered, folder+"geral/");
-    plot_files(full, "preenchida", no_lock_unordered, folder+"geral/");
+    plot_files(dist_a_small, "dist_a_pequenas", no_lock_unordered, folder+"outros/");
 
-    plot_files(many, "muitas", no_lock_unordered, folder+"geral/");
-    plot_files(few, "poucas", no_lock_unordered, folder+"geral/");
+    plot_files(dist_b_small, "dist_b_pequenas", no_lock_unordered, folder+"outros/");
 
-    plot_files(empty_few, "vazia_poucas", no_lock_unordered, folder+"geral/");
-    plot_files(empty_many, "vazia_muitas", no_lock_unordered, folder+"geral/");
+    plot_files(dist_c_small, "dist_c_pequenas", no_lock_unordered, folder+"outros/");
 
-    plot_files(full_few, "preenchida_poucas", no_lock_unordered, folder+"geral/");
-    plot_files(full_many, "preenchida_muitas", no_lock_unordered, folder+"geral/");
+    plot_files(empty, "vazia", no_lock_unordered, folder+"outros/");
+    plot_files(full, "preenchida", no_lock_unordered, folder+"outros/");
 
-    plot_files(many_small, "muitas_pequenos", no_lock_unordered, folder+"geral/");
-    plot_files(few_small, "poucas_pequenos", no_lock_unordered, folder+"geral/");
-    plot_files(many_big, "muitas_grandes", no_lock_unordered, folder+"geral/");
-    plot_files(few_big, "muitas_grandes", no_lock_unordered, folder+"geral/");
-    plot_files(test, "test", no_lock_unordered, folder+"geral/");
+    plot_files(many, "muitas", no_lock_unordered, folder+"outros/");
+    plot_files(few, "poucas", no_lock_unordered, folder+"outros/");
 
-    plot_files(dist_a_big, "dist_a_grandes", no_lock_unordered, folder+"geral/");
-    plot_files(dist_a_small, "dist_a_pequenos", no_lock_unordered, folder+"geral/");
+    plot_files(empty_few, "vazia_poucas", no_lock_unordered, folder+"outros/");
+    plot_files(empty_many, "vazia_muitas", no_lock_unordered, folder+"outros/");
+
+    plot_files(full_few, "preenchida_poucas", no_lock_unordered, folder+"outros/");
+    plot_files(full_many, "preenchida_muitas", no_lock_unordered, folder+"outros/");
+
+    plot_files(many_small, "muitas_pequenos", no_lock_unordered, folder+"outros/");
+    plot_files(few_small, "poucas_pequenos", no_lock_unordered, folder+"outros/");
+    plot_files(many_big, "muitas_grandes", no_lock_unordered, folder+"outros/");
+    plot_files(few_big, "muitas_grandes", no_lock_unordered, folder+"outros/");
+
+    plot_files(dist_a_big, "dist_a_grandes", no_lock_unordered, folder+"outros/");
+    plot_files(dist_a_small, "dist_a_pequenos", no_lock_unordered, folder+"outros/");
     
-    plot_files(dist_b_big, "dist_b_grandes", no_lock_unordered, folder+"geral/");
-    plot_files(dist_b_small, "dist_b_pequenos", no_lock_unordered, folder+"geral/");
+    plot_files(dist_b_big, "dist_b_grandes", no_lock_unordered, folder+"outros/");
+    plot_files(dist_b_small, "dist_b_pequenos", no_lock_unordered, folder+"outros/");
 
-    plot_files(dist_c_big, "dist_c_grandes", no_lock_unordered, folder+"geral/");
-    plot_files(dist_c_small, "dist_c_pequenas", no_lock_unordered, folder+"geral/");
+    plot_files(dist_c_big, "dist_c_grandes", no_lock_unordered, folder+"outros/");
+    plot_files(dist_c_small, "dist_c_pequenas", no_lock_unordered, folder+"outros/");
 
      for (auto &&file : dist_a)
      {
@@ -538,8 +552,8 @@ void plot_all(bool no_lock_unordered, std::string folder){
      }
 }
 int main(int argc, char *argv[]){
-    plot_all(true, "sem-lockunordered/");
     plot_all(false, "com-lockunordered/");
+    plot_all(true, "sem-lockunordered/");
     
     return 0;
 }
