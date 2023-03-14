@@ -243,21 +243,6 @@ void test(
         append_to_file(test,"");
         print_test(test,"");
         break;
-    case 27:
-        test =  Test::WFCUnorderedMap<uint32_t, 4, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test," 4");
-        print_test(test," 4");
-        break;
-        break;
-    case 28:
-        test =  Test::WFCUnorderedMap<std::array<uint32_t, 1024>, 4, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test," 4");
-        print_test(test," 4");
-        break;
     default:
         break;
     }
