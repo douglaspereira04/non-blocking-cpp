@@ -65,8 +65,7 @@ Test::~Test(){};
 
 template <typename ValueType, typename Reclaimer, bool OperationPairs, std::size_t GroupMaxSize, std::size_t Workload, typename Distribution, typename ...DistributionArgs> 
 	Test Test::MichaelScottQueue(unsigned long operations, unsigned int thread_amount, 
-	unsigned long pre_population, 
-	double delete_proportion, DistributionArgs... distribution_args){
+	unsigned long pre_population, DistributionArgs... distribution_args){
 
 	unsigned long elapsed_time;
 	std::thread thread[thread_amount];
@@ -76,11 +75,9 @@ template <typename ValueType, typename Reclaimer, bool OperationPairs, std::size
 
 	
 	{//populacao inicial
-		boost::random::mt19937 generator;
-		Distribution distribution(distribution_args...);
 
 		for (uint32_t i = 0; i < pre_population; i++){
-			ValueType v = (ValueType)distribution(generator);
+			ValueType v;
 			queue.push(v);
 		}
 	}
@@ -89,21 +86,68 @@ template <typename ValueType, typename Reclaimer, bool OperationPairs, std::size
 
 	for (size_t i = 0; i < thread_amount; i++){
 		thread[i] = std::thread([&](){
-			boost::random::mt19937 generator;
-			Distribution distribution(distribution_args...);
-			boost::random::uniform_real_distribution<double> uniform(0.0,1.0);
+			
+			if constexpr(!OperationPairs){
+				if constexpr(GroupMaxSize > 1){
+					boost::random::mt19937 chance_generator;
+					boost::random::mt19937 amount_generator;
+					boost::random::uniform_real_distribution<double> uniform_chance(0.0,1.0);
+					boost::random::uniform_int_distribution<uint32_t> uniform_amount(1,20);
 
-			for (size_t i = 0; i < operations/thread_amount; i++){
-				double chance = uniform(generator);
-				ValueType v = (ValueType)distribution(generator);
-				
+					for (size_t i = 0; i < operations/thread_amount; i++){
 
-				if (chance <= get_proportion) {
-					// get
-					queue.push(v);
-				} else if (chance <= (get_proportion + set_proportion)) {
-					// set
-					queue.try_pop();
+						uint32_t amount = uniform_amount(amount_generator);
+						double chance = uniform(generator);
+
+						if (chance <= 0.5) {
+							for (uint32_t i = 0; i < amount; i++){
+								ValueType v;
+								queue.push(v);
+							}
+						} else {
+							for (uint32_t i = 0; i < amount; i++){
+								queue.try_pop();
+							}
+						}
+					}
+				} else{
+					boost::random::mt19937 generator;
+					boost::random::uniform_real_distribution<double> uniform(0.0,1.0);
+
+					for (size_t i = 0; i < operations/thread_amount; i++){
+
+						double chance = uniform(generator);
+						if (chance <= 0.5) {
+							ValueType v;
+							queue.push(v);
+						} else {
+							queue.try_pop();
+						}
+					}
+				}
+			}else {
+				if constexpr(GroupMaxSize > 1){
+					boost::random::mt19937 generator;
+					boost::random::uniform_int_distribution<uint32_t> uniform(1,20);
+
+					for (size_t i = 0; i < operations/thread_amount; i++){
+
+						uint32_t amount = uniform(generator);
+						for (uint32_t i = 0; i < amount; i++){
+							ValueType v;
+							queue.push(v);
+						}
+						uint32_t amount = uniform(generator);
+						for (uint32_t i = 0; i < amount; i++){
+							queue.try_pop();
+						}
+					}
+				} else{
+					for (size_t i = 0; i < operations/thread_amount; i++){
+						ValueType v;
+						queue.push(v);
+						queue.try_pop();
+					}
 				}
 			}
 		});
