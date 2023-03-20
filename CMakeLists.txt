@@ -14,8 +14,10 @@ include_directories(".")
 add_subdirectory(matplotplusplus)
 
 add_executable(hashmap hashmap.cpp)
+add_executable(queue queue.cpp)
 
 add_executable(plot plot.cpp)
 
 target_link_libraries(plot PUBLIC matplot)
 target_link_libraries(hashmap TBB::tbb LibCDS::cds Threads::Threads)
+target_link_libraries(queue TBB::tbb LibCDS::cds Threads::Threads)
