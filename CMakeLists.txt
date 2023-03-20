@@ -13,15 +13,9 @@ project(test)
 include_directories(".")
 add_subdirectory(matplotplusplus)
 
-add_executable(main main.cpp)
+add_executable(hashmap hashmap.cpp)
 
 add_executable(plot plot.cpp)
 
 target_link_libraries(plot PUBLIC matplot)
-target_link_libraries(main TBB::tbb LibCDS::cds Threads::Threads)
-
-add_custom_target(run
-    COMMAND main
-    DEPENDS main
-    WORKING_DIRECTORY ${CMAKE_PROJECT_DIR}
-)
+target_link_libraries(hashmap TBB::tbb LibCDS::cds Threads::Threads)
