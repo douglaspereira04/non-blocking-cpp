@@ -6,12 +6,13 @@
 #include <xenium/harris_michael_hash_map.hpp>
 #include <string>
 #include <wfc/unordered_map.hpp>
-
+#include <cds/container/michael_list_hp.h>
 #include <cds/container/feldman_hashmap_hp.h>
 #include <cds/container/feldman_hashmap_dhp.h>
 #include <cds/container/michael_kvlist_hp.h>
 #include <cds/container/michael_kvlist_dhp.h>
 #include <cds/container/michael_map.h>
+#include <cds/container/split_list_map.h>
 #include <lockfreehashtable/lockfree_hashtable.h>
 #include <cds/init.h>
 #include <thread>
@@ -69,6 +70,11 @@ template <typename ValueType, typename Reclaimer, std::size_t Buckets, typename 
 
 	template <typename ValueType, typename GC, size_t MaxItemCount, size_t LoadFactor, typename Distribution, typename ...DistributionArgs> 
 		static Test LibCDSMichael(unsigned long operations, unsigned int thread_amount, 
+		unsigned long pre_population, double get_proportion, double set_proportion, 
+		double delete_proportion, DistributionArgs... distribution_args);
+
+	template <typename ValueType, typename GC, size_t MaxItemCount, size_t LoadFactor, typename Distribution, typename ...DistributionArgs> 
+		static Test LibCDSSplitOrdered(unsigned long operations, unsigned int thread_amount, 
 		unsigned long pre_population, double get_proportion, double set_proportion, 
 		double delete_proportion, DistributionArgs... distribution_args);
 
@@ -517,5 +523,87 @@ Test Test::LibCDSMichael(unsigned long operations, unsigned int thread_amount,
     cds::Terminate();
 	
 	return Test("LibCDSMichael", elapsed_time, operations, thread_amount);
+
+};
+
+template <typename ValueType, typename GC, size_t MaxItemCount, size_t LoadFactor, typename Distribution, typename ...DistributionArgs> 
+Test Test::LibCDSSplitOrdered(unsigned long operations, unsigned int thread_amount, 
+	unsigned long pre_population, double get_proportion, double set_proportion, 
+	double delete_proportion, DistributionArgs... distribution_args){
+	
+	unsigned long elapsed_time;
+	
+	std::thread thread[thread_amount];
+    cds::Initialize();
+    {
+        GC gc;
+        cds::threading::Manager::attachThread();
+		
+		typedef cds::container::SplitListMap<
+			GC,
+			uint32_t,
+			ValueType,
+			cds::container::split_list::make_traits<      // metafunction to build split-list traits
+				cds::container::split_list::ordered_list<cds::container::michael_list_tag>,
+				cds::container::opt::hash< std::hash<uint32_t> >,
+				cds::container::split_list::ordered_list_traits<    // ordered list traits desired
+					cds::container::michael_list::make_traits<    // metafunction to build lazy list traits
+						cds::container::opt::less< std::less<uint32_t> >         // less-based compare functor
+					>::type
+				>
+			>::type
+		>  split_ordered_map;
+		split_ordered_map map(MaxItemCount, LoadFactor);
+		typedef typename split_ordered_map::guarded_ptr GuardedPointer;
+
+		{//populacao inicial
+			for (uint32_t i = 0; i < pre_population; i++){
+				ValueType v;
+				map.insert(i,v);
+			}
+		}
+		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+		for (size_t i = 0; i < thread_amount; i++){
+			thread[i] = std::thread([&](){
+		
+				boost::random::mt19937 generator;
+				Distribution distribution(distribution_args...);
+				boost::random::uniform_real_distribution<double> uniform(0.0,1.0);
+
+				cds::threading::Manager::attachThread();
+
+				for (size_t i = 0; i < operations/thread_amount; i++){
+					double chance = uniform(generator);
+					uint32_t key = (uint32_t)distribution(generator);
+
+					if (chance <= get_proportion) {
+						// get
+						GuardedPointer gp = GuardedPointer( map.get(key));
+					} else if (chance <= (get_proportion + set_proportion)) {
+						// set
+						ValueType v;
+						map.insert(key,v);
+					} else {
+						// delete
+						map.erase(key);
+					}
+				}
+
+				cds::threading::Manager::detachThread();
+			});
+		}
+
+		for (size_t i = 0; i < thread_amount; i++){
+			thread[i].join();
+		}
+
+		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+		elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+		
+    }    
+    cds::Terminate();
+	
+	return Test("LibCDSSplitOrdered", elapsed_time, operations, thread_amount);
 
 };

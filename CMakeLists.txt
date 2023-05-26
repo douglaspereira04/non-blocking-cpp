@@ -4,7 +4,6 @@ enable_language(CXX)
 
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mcx16") 
-
 find_package(TBB REQUIRED)
 find_package(LibCDS REQUIRED)
 find_package(Threads REQUIRED)
@@ -16,6 +15,8 @@ add_subdirectory(matplotplusplus)
 add_executable(main main.cpp)
 
 add_executable(plot plot.cpp)
+
+# target_compile_definitions(main PUBLIC BIG)
 
 target_link_libraries(plot PUBLIC matplot)
 target_link_libraries(main TBB::tbb LibCDS::cds Threads::Threads)

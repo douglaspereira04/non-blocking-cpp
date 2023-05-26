@@ -15,6 +15,12 @@
 std::ofstream TEST_FILE;
 std::string TEST_FILE_NAME = "test.csv";
 
+#ifdef BIG
+typedef std::array<uint32_t, 1024> KeyType;
+#else
+typedef uint32_t KeyType;
+#endif
+
 void append_to_file(Test test, std::string text){
 
     TEST_FILE.open (TEST_FILE_NAME, std::ios_base::app);
@@ -40,7 +46,14 @@ void test(
     int data_structure,
     DistributionArgs... distribution_args
     ){
-
+    std::cout << thread_amount
+        << " " << operations
+        << " " << pre_population
+        << " " << get_proportion
+        << " " << set_proportion
+        << " " << delete_proportion
+        << " " << data_structure 
+        << std::endl;
     std::default_random_engine generator;
     //clear_file();
     Distribution distribution(distribution_args...);
@@ -50,198 +63,98 @@ void test(
     switch (data_structure)
     {
     case 1:
-            test = Test::LockUnordered<uint32_t, Distribution, DistributionArgs...>
+            test = Test::LockUnordered<KeyType, Distribution, DistributionArgs...>
             (operations, thread_amount, pre_population, get_proportion, 
             set_proportion, delete_proportion, distribution_args...);
         append_to_file(test,"");
         print_test(test,"");
         break;
     case 2:
-        test = Test::TBBMap<uint32_t, Distribution, DistributionArgs...>
+        test = Test::TBBMap<KeyType, Distribution, DistributionArgs...>
             (operations, thread_amount, pre_population, get_proportion, 
             set_proportion, delete_proportion, distribution_args...);
         append_to_file(test,"");
         print_test(test,"");
         break;
     case 3:
-        //expects few keys
-        test =  Test::XeniumHarrisMichael<uint32_t, 
-            xenium::reclamation::hazard_pointer<>,
-            500 , Distribution, DistributionArgs...>
+        test =  Test::WFCUnorderedMap<KeyType, 4, Distribution, DistributionArgs...>
             (operations, thread_amount, pre_population, get_proportion, 
             set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test, "");
-        print_test(test, "");
+        append_to_file(test," 4");
+        print_test(test," 4");
         break;
     case 4:
-        //expects more keys
-        test =  Test::XeniumHarrisMichael<uint32_t, 
-            xenium::reclamation::hazard_pointer<>,
-            500000 , Distribution, DistributionArgs...>
+        test =  Test::WFCUnorderedMap<KeyType, 8, Distribution, DistributionArgs...>
             (operations, thread_amount, pre_population, get_proportion, 
             set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test, "");
-        print_test(test, "");
+        append_to_file(test," 8");
+        print_test(test," 8");
         break;
     case 5:
-        test =  Test::WFCUnorderedMap<uint32_t, 16, Distribution, DistributionArgs...>
+        test =  Test::LibCDSFeldman<KeyType, cds::gc::HP,4,4, Distribution, DistributionArgs...>
             (operations, thread_amount, pre_population, get_proportion, 
             set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test," 16");
-        print_test(test," 16");
+        append_to_file(test," 4");
+        print_test(test," 4");
         break;
     case 6:
-        test =  Test::WFCUnorderedMap<uint32_t, 8, Distribution, DistributionArgs...>
+        test =  Test::LibCDSFeldman<KeyType, cds::gc::HP,8,8, Distribution, DistributionArgs...>
             (operations, thread_amount, pre_population, get_proportion, 
             set_proportion, delete_proportion, distribution_args...);
         append_to_file(test," 8");
         print_test(test," 8");
         break;
     case 7:
-        test =  Test::LibCDSFeldman<uint32_t, cds::gc::HP,8,4, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test," 4");
-        print_test(test," 4");
-        break;
-    case 8:
-        test =  Test::LibCDSFeldman<uint32_t, cds::gc::HP,8,8, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test," 8");
-        print_test(test," 8");
-        break;
-    case 9:          
-        //expects few                           
-        test =  Test::LibCDSMichael<uint32_t, cds::gc::HP, 1000, 1, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test," 1");
-        print_test(test," 1");
-        break;
-    case 10:                                     
-        test =  Test::LibCDSMichael<uint32_t, cds::gc::HP, 1000000, 1, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test," 1");
-        print_test(test," 1");
-        break;
-    case 11:   
-        //expects few                                  
-        test =  Test::LibCDSMichael<uint32_t, cds::gc::HP, 1000, 4, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test," 4");
-        print_test(test," 4");
-        break;
-    case 12:                                     
-        test =  Test::LibCDSMichael<uint32_t, cds::gc::HP, 1000000, 4, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test," 4");
-        print_test(test," 4");
-        break;
-    case 13:                                     
-        test =  Test::Bhhbazinga<uint32_t, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test,"");
-        print_test(test,"");
-        break;
-    case 14:
-            test = Test::LockUnordered<std::array<uint32_t, 1024>, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test,"");
-        print_test(test,"");
-        break;
-    case 15:
-        test = Test::TBBMap<std::array<uint32_t, 1024>, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test,"");
-        print_test(test,"");
-        break;
-    case 16:
-        test =  Test::XeniumHarrisMichael<std::array<uint32_t, 1024>, 
+        //expects few keys
+        test =  Test::XeniumHarrisMichael<KeyType, 
             xenium::reclamation::hazard_pointer<>,
-            500 , Distribution, DistributionArgs...>
+            1024 , Distribution, DistributionArgs...>
             (operations, thread_amount, pre_population, get_proportion, 
             set_proportion, delete_proportion, distribution_args...);
         append_to_file(test, "");
         print_test(test, "");
         break;
-    case 17:
-        test =  Test::XeniumHarrisMichael<std::array<uint32_t, 1024>, 
+    case 8:          
+        //expects few keys                       
+        test =  Test::LibCDSMichael<KeyType, cds::gc::HP, 1024, 1, Distribution, DistributionArgs...>
+            (operations, thread_amount, pre_population, get_proportion, 
+            set_proportion, delete_proportion, distribution_args...);
+        append_to_file(test," 1");
+        print_test(test," 1");
+        break;
+    case 9:
+        //expects few keys                       
+        test =  Test::LibCDSSplitOrdered<KeyType, cds::gc::HP, 1024, 1, Distribution, DistributionArgs...>
+            (operations, thread_amount, pre_population, get_proportion, 
+            set_proportion, delete_proportion, distribution_args...);
+        append_to_file(test," 1");
+        print_test(test," 1");
+        break;
+    case 10:       
+        //expects more keys                              
+        test =  Test::LibCDSMichael<KeyType, cds::gc::HP, 1048576, 1, Distribution, DistributionArgs...>
+            (operations, thread_amount, pre_population, get_proportion, 
+            set_proportion, delete_proportion, distribution_args...);
+        append_to_file(test," 1");
+        print_test(test," 1");
+        break;
+    case 11:
+        //expects more keys
+        test =  Test::XeniumHarrisMichael<KeyType, 
             xenium::reclamation::hazard_pointer<>,
-            500000 , Distribution, DistributionArgs...>
+            1048576 , Distribution, DistributionArgs...>
             (operations, thread_amount, pre_population, get_proportion, 
             set_proportion, delete_proportion, distribution_args...);
         append_to_file(test, "");
         print_test(test, "");
         break;
-    case 18:
-        test =  Test::WFCUnorderedMap<std::array<uint32_t, 1024>, 16, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test," 16");
-        print_test(test," 16");
-        break;
-    case 19:
-        test =  Test::WFCUnorderedMap<std::array<uint32_t, 1024>, 8, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test," 8");
-        print_test(test," 8");
-        break;
-    case 20:
-        test =  Test::LibCDSFeldman<std::array<uint32_t, 1024>, cds::gc::HP,8,4, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test," 4");
-        print_test(test," 4");
-        break;
-    case 21:
-        test =  Test::LibCDSFeldman<std::array<uint32_t, 1024>, cds::gc::HP,8,8, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test," 8");
-        print_test(test," 8");
-        break;
-    case 22:                                     
-        test =  Test::LibCDSMichael<std::array<uint32_t, 1024>, cds::gc::HP, 1000, 1, Distribution, DistributionArgs...>
+    case 12:
+        //expects more keys                 
+        test =  Test::LibCDSSplitOrdered<KeyType, cds::gc::HP, 1048576, 1, Distribution, DistributionArgs...>
             (operations, thread_amount, pre_population, get_proportion, 
             set_proportion, delete_proportion, distribution_args...);
         append_to_file(test," 1");
         print_test(test," 1");
-        break;
-    case 23:                                     
-        test =  Test::LibCDSMichael<std::array<uint32_t, 1024>, cds::gc::HP, 1000, 1, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test," 1");
-        print_test(test," 1");
-        break;
-    case 24:                                     
-        test =  Test::LibCDSMichael<std::array<uint32_t, 1024>, cds::gc::HP, 1000, 4, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test," 4");
-        print_test(test," 4");
-        break;
-    case 25:                                     
-        test =  Test::LibCDSMichael<std::array<uint32_t, 1024>, cds::gc::HP, 1000000, 4, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test," 4");
-        print_test(test," 4");
-        break;
-    case 26:                                     
-        test =  Test::Bhhbazinga<std::array<uint32_t, 1024>, Distribution, DistributionArgs...>
-            (operations, thread_amount, pre_population, get_proportion, 
-            set_proportion, delete_proportion, distribution_args...);
-        append_to_file(test,"");
-        print_test(test,"");
         break;
     default:
         break;
