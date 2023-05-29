@@ -37,9 +37,9 @@ names=(a b c)
 few_keys_tests=(1 2 3 4 5 6 7 8 9)
 many_keys_tests=(1 2 3 4 5 6 10 11 12)
 
-for k in {1..20}; do
+for k in {1..10}; do
 #rep
-    for j in 1 2 4 8 12 16 24 32 48; do
+    for j in 1 4 8 16 32; do
     #threads
         for l in {0..2}; do
         #distribution
