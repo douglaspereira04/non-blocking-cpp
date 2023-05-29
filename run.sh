@@ -46,26 +46,26 @@ for k in {1..10}; do
 
             #few keys
                 #empty
-                filename="vazio_poucas_pequenas_${names[l]}.csv"
+                filename="vazio_poucas_grandes_${names[l]}.csv"
                 for i in "${few_keys_tests[@]}"; do 
                     ./main $j $operations  0 ${search[l]} ${insert[l]} ${remove[l]} $i $few_keys_range $filename
                 done
 
                 #prepopulated
-                filename="cheio_poucas_pequenas_${names[l]}.csv"
+                filename="cheio_poucas_grandes_${names[l]}.csv"
                 for i in "${few_keys_tests[@]}"; do 
                     ./main $j $operations  $few_keys_range ${search[l]} ${insert[l]} ${remove[l]} $i $few_keys_range $filename
                 done
             
             #many keys
                 #empty
-                filename="vazio_muitas_pequenas_${names[l]}.csv"
+                filename="vazio_muitas_grandes_${names[l]}.csv"
                 for i in "${many_keys_tests[@]}"; do 
                     ./main $j $operations  0 ${search[l]} ${insert[l]} ${remove[l]} $i $many_keys_range $filename
                 done
 
                 #prepopulated
-                filename="cheio_muitas_pequenas_${names[l]}.csv"
+                filename="cheio_muitas_grandes_${names[l]}.csv"
                 for i in "${many_keys_tests[@]}"; do 
                     ./main $j $operations  $many_keys_range ${search[l]} ${insert[l]} ${remove[l]} $i $many_keys_range $filename
                 done

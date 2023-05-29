@@ -16,7 +16,7 @@ add_executable(main main.cpp)
 
 add_executable(plot plot.cpp)
 
-# target_compile_definitions(main PUBLIC BIG)
+target_compile_definitions(main PUBLIC BIG)
 
 target_link_libraries(plot PUBLIC matplot)
 target_link_libraries(main TBB::tbb LibCDS::cds Threads::Threads)
