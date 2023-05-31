@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <tbb/concurrent_hash_map.h>
 #include <xenium/harris_michael_hash_map.hpp>
+#include <xenium/utils.hpp>
 #include <string>
 #include <wfc/unordered_map.hpp>
 #include <cds/container/michael_list_hp.h>
@@ -25,7 +26,6 @@
 
 class Test{
 protected:
-#include <lockfreehashtable/lockfree_hashtable.h>
 
 	std::string structure;
 	unsigned long elapsed_time;
@@ -39,12 +39,12 @@ public:
 	~Test();
 	
 template <typename ValueType, typename Reclaimer, std::size_t Buckets, typename Distribution, typename ...DistributionArgs> 
-		static Test XeniumHarrisMichael(unsigned long operations, 
+		static Test XeniumMichael(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
 		double setProportion, double deleteProportion, DistributionArgs... distribution_args);
 
 	template <typename ValueType, typename Distribution, typename ...DistributionArgs> 
-		static Test LockUnordered(unsigned long operations, 
+		static Test STDLock(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
 		double setProportion, double deleteProportion, DistributionArgs... distribution_args);
 		
@@ -110,22 +110,25 @@ Test::Test(std::string structure, unsigned long elapsed_time, unsigned long oper
 Test::~Test(){};
 
 template <typename ValueType, typename Reclaimer, std::size_t Buckets, typename Distribution, typename ...DistributionArgs> 
-	Test Test::XeniumHarrisMichael(unsigned long operations, unsigned int thread_amount, 
+	Test Test::XeniumMichael(unsigned long operations, unsigned int thread_amount, 
 	unsigned long pre_population, double get_proportion, double set_proportion, 
 	double delete_proportion, DistributionArgs... distribution_args){
 
 	unsigned long elapsed_time;
 	std::thread thread[thread_amount];
 	
-	xenium::harris_michael_hash_map
+	typedef xenium::harris_michael_hash_map
 		<uint32_t, ValueType, xenium::policy::reclaimer
-			<Reclaimer>, xenium::policy::buckets<Buckets>> map;
+			<Reclaimer>, xenium::policy::buckets<Buckets>,
+			xenium::policy::map_to_bucket<xenium::utils::modulo<uint32_t>>> map_t;
+
+	map_t *map = new map_t();
 
 	
 	{//populacao inicial
 		for (uint32_t i = 0; i < pre_population; i++){
 			ValueType v;
-			map.emplace(i, v);
+			map->emplace(i, v);
 		}
 	}
 
@@ -143,14 +146,14 @@ template <typename ValueType, typename Reclaimer, std::size_t Buckets, typename 
 
 				if (chance <= get_proportion) {
 					// get
-					map.find(key);
+					(*map)[key];
 				} else if (chance <= (get_proportion + set_proportion)) {
 					// set
 					ValueType v;
-					map.emplace(key, v);
+					map->emplace(key, v);
 				} else {
 					// delete
-					map.erase(key);
+					map->erase(key);
 				}
 			}
 		});
@@ -162,12 +165,14 @@ template <typename ValueType, typename Reclaimer, std::size_t Buckets, typename 
 
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
-	return Test("XeniumHarrisMichael", elapsed_time, operations, thread_amount);
+	delete map;
+
+	return Test("Xenium_Michael", elapsed_time, operations, thread_amount);
 };
 
 
 template <typename ValueType, typename Distribution, typename ...DistributionArgs> 
-Test Test::LockUnordered(unsigned long operations, unsigned int thread_amount, 
+Test Test::STDLock(unsigned long operations, unsigned int thread_amount, 
 	unsigned long pre_population, double get_proportion, double set_proportion, 
 	double delete_proportion, DistributionArgs... distribution_args){
 
@@ -175,12 +180,13 @@ Test Test::LockUnordered(unsigned long operations, unsigned int thread_amount,
 	
 	unsigned long elapsed_time;
 	std::thread thread[thread_amount];
-	std::unordered_map<uint32_t, ValueType> map;
+	typedef std::unordered_map<uint32_t, ValueType> map_t;
+	map_t *map = new map_t();
 	
 	{//populacao inicial
 		for (uint32_t i = 0; i < pre_population; i++){
 			ValueType v;
-			map.emplace(i, v);
+			map->emplace(i, v);
 		}
 	}
 
@@ -199,18 +205,18 @@ Test Test::LockUnordered(unsigned long operations, unsigned int thread_amount,
 				if (chance <= get_proportion) {
 					// get
 					mutex.lock();
-					map.find(key);
+					map->find(key);
 					mutex.unlock();
 				} else if (chance <= (get_proportion + set_proportion)) {
 					// set
 					ValueType v;
 					mutex.lock();
-					map.emplace(key, v);
+					map->emplace(key, v);
 					mutex.unlock();
 				} else {
 					// delete
 					mutex.lock();
-					map.erase(key);
+					map->erase(key);
 					mutex.unlock();
 				}
 			}
@@ -223,7 +229,9 @@ Test Test::LockUnordered(unsigned long operations, unsigned int thread_amount,
 
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
-	return Test("LockUnordered", elapsed_time, operations, thread_amount);
+	delete map;
+
+	return Test("STD_Lock", elapsed_time, operations, thread_amount);
 };
 
 template <typename ValueType, typename Distribution, typename ...DistributionArgs> 
@@ -235,7 +243,7 @@ Test Test::TBBMap(unsigned long operations, unsigned int thread_amount,
 	unsigned long elapsed_time;
 	std::thread thread[thread_amount];
 	typedef tbb::concurrent_hash_map<uint32_t,ValueType> tbb_map;
-	tbb_map map;
+	tbb_map *map = new tbb_map();
 	
 
 	{//populacao inicial
@@ -243,7 +251,7 @@ Test Test::TBBMap(unsigned long operations, unsigned int thread_amount,
 		for (uint32_t i = 0; i < pre_population; i++){
 			ValueType v;
 			typename tbb_map::accessor a;
-			map.emplace(a, i, v);
+			map->emplace(a, i, v);
 		}
 	}
 
@@ -262,15 +270,15 @@ Test Test::TBBMap(unsigned long operations, unsigned int thread_amount,
 				if (chance <= get_proportion) {
 					// get
 					typename tbb_map::accessor a;
-					map.find(a, key);
+					map->find(a, key);
 				} else if (chance <= (get_proportion + set_proportion)) {
 					// set
 					ValueType v;
 					typename tbb_map::accessor a;
-					map.emplace(a, key, v);
+					map->emplace(a, key, v);
 				} else {
 					// delete
-					map.erase(key);
+					map->erase(key);
 				}
 			}
 		});
@@ -282,6 +290,8 @@ Test Test::TBBMap(unsigned long operations, unsigned int thread_amount,
 
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+	delete map;
+
 	return Test("TBB", elapsed_time, operations, thread_amount);
 };
 
@@ -293,12 +303,13 @@ Test Test::WFCUnorderedMap(unsigned long operations, unsigned int thread_amount,
 	
 	unsigned long elapsed_time;
 	std::thread thread[thread_amount];
-	wfc::unordered_map<uint32_t,ValueType> map(node_array_size, thread_amount, thread_amount);
+	typedef wfc::unordered_map<uint32_t,ValueType> map_t;
+	map_t *map = new map_t(node_array_size, thread_amount, thread_amount);
 
 	{//populacao inicial
 		for (uint32_t i = 0; i < pre_population; i++){
 			ValueType v;
-			map.insert(i,v);
+			map->insert(i,v);
 		}
 	}
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -315,14 +326,14 @@ Test Test::WFCUnorderedMap(unsigned long operations, unsigned int thread_amount,
 
 				if (chance <= get_proportion) {
 					// get
-					map.get(key);
+					map->get(key);
 				} else if (chance <= (get_proportion + set_proportion)) {
 					// set
 					ValueType v;
-					map.insert(key, v);
+					map->insert(key, v);
 				} else {
 					// delete
-					map.remove(key);
+					map->remove(key);
 				}
 			}
 		});
@@ -334,7 +345,9 @@ Test Test::WFCUnorderedMap(unsigned long operations, unsigned int thread_amount,
 
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
-	return Test("WFCUnorderedMap", elapsed_time, operations, thread_amount);
+	delete map;
+
+	return Test("WFC_Laborde", elapsed_time, operations, thread_amount);
 };
 
 
@@ -345,12 +358,13 @@ Test Test::Bhhbazinga(unsigned long operations, unsigned int thread_amount,
 	
 	unsigned long elapsed_time;
 	std::thread thread[thread_amount];
-	LockFreeHashTable<uint32_t,ValueType> map;
+	typedef LockFreeHashTable<uint32_t,ValueType> map_t;
+	map_t *map = new map_t();
 
 	{//populacao inicial
 		for (uint32_t i = 0; i < pre_population; i++){
 			ValueType v;
-			map.Insert(i,v);
+			map->Insert(i,v);
 		}
 	}
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -368,14 +382,14 @@ Test Test::Bhhbazinga(unsigned long operations, unsigned int thread_amount,
 				if (chance <= get_proportion) {
 					// get
 					ValueType v;
-					map.Find(key, v);
+					map->Find(key, v);
 				} else if (chance <= (get_proportion + set_proportion)) {
 					// set
 					ValueType v;
-					map.Insert(key, v);
+					map->Insert(key, v);
 				} else {
 					// delete
-					map.Delete(key);
+					map->Delete(key);
 				}
 			}
 		});
@@ -387,7 +401,9 @@ Test Test::Bhhbazinga(unsigned long operations, unsigned int thread_amount,
 
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
-	return Test("Bhhbazinga", elapsed_time, operations, thread_amount);
+	delete map;
+
+	return Test("Bhhbazinga_SplitOrdered", elapsed_time, operations, thread_amount);
 };
 
 template <typename ValueType, typename GC, size_t head_bits, size_t array_bits, typename Distribution, typename ...DistributionArgs> 
@@ -402,13 +418,14 @@ Test Test::LibCDSFeldman(unsigned long operations, unsigned int thread_amount,
     {
         GC gc;
         cds::threading::Manager::attachThread();
-        cds::container::FeldmanHashMap<GC, uint32_t, ValueType> map(head_bits,array_bits);
-		typedef typename cds::container::FeldmanHashMap<GC, uint32_t, ValueType>::guarded_ptr GuardedPointer;
+        typedef cds::container::FeldmanHashMap<GC, uint32_t, ValueType> map_t;
+		map_t *map = new map_t(head_bits,array_bits);
+		typedef typename map_t::guarded_ptr GuardedPointer;
 
 		{//populacao inicial
 			for (uint32_t i = 0; i < pre_population; i++){
 				ValueType v;
-				map.insert(i,v);
+				map->insert(i,v);
 			}
 		}
 		
@@ -429,14 +446,14 @@ Test Test::LibCDSFeldman(unsigned long operations, unsigned int thread_amount,
 
 					if (chance <= get_proportion) {
 						// get
-						GuardedPointer gp = GuardedPointer( map.get(key));
+						GuardedPointer gp = GuardedPointer( map->get(key));
 					} else if (chance <= (get_proportion + set_proportion)) {
 						// set
 						ValueType v;
-						map.insert(key,v);
+						map->insert(key,v);
 					} else {
 						// delete
-						map.erase(key);
+						map->erase(key);
 					}
 				}
 
@@ -450,11 +467,12 @@ Test Test::LibCDSFeldman(unsigned long operations, unsigned int thread_amount,
 
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 		elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+		delete map;
 		
     }    
     cds::Terminate();
 	
-	return Test("LibCDSFeldman", elapsed_time, operations, thread_amount);
+	return Test("LibCDS_Feldman", elapsed_time, operations, thread_amount);
 
 };
 
@@ -471,13 +489,14 @@ Test Test::LibCDSMichael(unsigned long operations, unsigned int thread_amount,
         GC gc;
         cds::threading::Manager::attachThread();
 	
-		cds::container::MichaelHashMap<GC, cds::container::MichaelKVList<GC, uint32_t, ValueType>> map(MaxItemCount, LoadFactor);
-		typedef typename cds::container::MichaelHashMap<GC, cds::container::MichaelKVList<GC, uint32_t, ValueType>>::guarded_ptr GuardedPointer;
+		typedef cds::container::MichaelHashMap<GC, cds::container::MichaelKVList<GC, uint32_t, ValueType>> map_t;
+		map_t *map = new map_t(MaxItemCount, LoadFactor);
+		typedef typename map_t::guarded_ptr GuardedPointer;
 
 		{//populacao inicial
 			for (uint32_t i = 0; i < pre_population; i++){
 				ValueType v;
-				map.insert(i,v);
+				map->insert(i,v);
 			}
 		}
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -497,14 +516,14 @@ Test Test::LibCDSMichael(unsigned long operations, unsigned int thread_amount,
 
 					if (chance <= get_proportion) {
 						// get
-						GuardedPointer gp = GuardedPointer( map.get(key));
+						GuardedPointer gp = GuardedPointer( map->get(key));
 					} else if (chance <= (get_proportion + set_proportion)) {
 						// set
 						ValueType v;
-						map.insert(key,v);
+						map->insert(key,v);
 					} else {
 						// delete
-						map.erase(key);
+						map->erase(key);
 					}
 				}
 
@@ -518,11 +537,12 @@ Test Test::LibCDSMichael(unsigned long operations, unsigned int thread_amount,
 
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 		elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+		delete map;
 		
     }    
     cds::Terminate();
 	
-	return Test("LibCDSMichael", elapsed_time, operations, thread_amount);
+	return Test("LibCDS_Michael", elapsed_time, operations, thread_amount);
 
 };
 
@@ -553,13 +573,13 @@ Test Test::LibCDSSplitOrdered(unsigned long operations, unsigned int thread_amou
 				>
 			>::type
 		>  split_ordered_map;
-		split_ordered_map map(MaxItemCount, LoadFactor);
+		split_ordered_map *map = new split_ordered_map(MaxItemCount, LoadFactor);
 		typedef typename split_ordered_map::guarded_ptr GuardedPointer;
 
 		{//populacao inicial
 			for (uint32_t i = 0; i < pre_population; i++){
 				ValueType v;
-				map.insert(i,v);
+				map->insert(i,v);
 			}
 		}
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -579,14 +599,14 @@ Test Test::LibCDSSplitOrdered(unsigned long operations, unsigned int thread_amou
 
 					if (chance <= get_proportion) {
 						// get
-						GuardedPointer gp = GuardedPointer( map.get(key));
+						GuardedPointer gp = GuardedPointer( map->get(key));
 					} else if (chance <= (get_proportion + set_proportion)) {
 						// set
 						ValueType v;
-						map.insert(key,v);
+						map->insert(key,v);
 					} else {
 						// delete
-						map.erase(key);
+						map->erase(key);
 					}
 				}
 
@@ -600,10 +620,11 @@ Test Test::LibCDSSplitOrdered(unsigned long operations, unsigned int thread_amou
 
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 		elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+		delete map;
 		
     }    
     cds::Terminate();
 	
-	return Test("LibCDSSplitOrdered", elapsed_time, operations, thread_amount);
+	return Test("LibCDS_SplitOrdered", elapsed_time, operations, thread_amount);
 
 };

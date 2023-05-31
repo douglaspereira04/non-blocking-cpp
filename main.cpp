@@ -60,10 +60,12 @@ void test(
     
     Test test;
     
+    
+
     switch (data_structure)
     {
     case 1:
-            test = Test::LockUnordered<KeyType, Distribution, DistributionArgs...>
+            test = Test::STDLock<KeyType, Distribution, DistributionArgs...>
             (operations, thread_amount, pre_population, get_proportion, 
             set_proportion, delete_proportion, distribution_args...);
         append_to_file(test,"");
@@ -106,7 +108,7 @@ void test(
         break;
     case 7:
         //expects few keys
-        test =  Test::XeniumHarrisMichael<KeyType, 
+        test =  Test::XeniumMichael<KeyType, 
             xenium::reclamation::hazard_pointer<>,
             1024 , Distribution, DistributionArgs...>
             (operations, thread_amount, pre_population, get_proportion, 
@@ -140,9 +142,9 @@ void test(
         break;
     case 11:
         //expects more keys
-        test =  Test::XeniumHarrisMichael<KeyType, 
+        test =  Test::XeniumMichael<KeyType,
             xenium::reclamation::hazard_pointer<>,
-            1048576 , Distribution, DistributionArgs...>
+            1048576, Distribution, DistributionArgs...>
             (operations, thread_amount, pre_population, get_proportion, 
             set_proportion, delete_proportion, distribution_args...);
         append_to_file(test, "");
@@ -172,6 +174,9 @@ const size_t KEY_RANGE = 8;
 const size_t FILE_NAME = 9;
 
 int main(int argc, char *argv[]){
+#ifdef BIG
+std::cout << "BIG_VALUES" << std::endl;
+#endif
     TEST_FILE_NAME = argv[FILE_NAME];
     
     test<boost::random::uniform_int_distribution<uint32_t>, long, long>(
