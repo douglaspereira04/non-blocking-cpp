@@ -49,7 +49,7 @@ make clean
 cmake . -DBIG_VALUES=OFF
 make -j4
 
-for k in {1..$reps}; do
+for k in $(seq $reps); do
 #rep
     for j in "${threads[@]}"; do
     #threads
