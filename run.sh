@@ -34,17 +34,16 @@ many_keys_tests=(1 2 3 4 5 6 10 11 12)
 few_keys_range=1024
 many_keys_range=1048576
 
-#operations=10000000
-operations=10000
+operations=10000000
+
 
 search=(0.90 0.45 0.05)
 insert=(0.05 0.45 0.90)
 remove=(0.05 0.10 0.05)
 names=(a b c)
 
-#threads=(1 4 8 16 32)
-threads=(2)
-reps=1
+threads=(1 4 8 16 32)
+reps=10
 
 make clean
 cmake . -DBIG_VALUES=OFF
