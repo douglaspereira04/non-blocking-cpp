@@ -90,7 +90,7 @@ make clean
 cmake . -DBIG_VALUES=ON
 make -j4
 
-for k in {1..$reps}; do
+for k in {0..0}; do
 #rep
     for j in "${threads[@]}"; do
     #threads
