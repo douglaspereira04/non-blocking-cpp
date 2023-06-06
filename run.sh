@@ -1,31 +1,31 @@
 #!/bin/bash
 
-echo "Structure,Threads,Elapsed Time" > vazio_poucas_pequenas_a.csv
-echo "Structure,Threads,Elapsed Time" > vazio_muitas_pequenas_a.csv
-echo "Structure,Threads,Elapsed Time" > cheio_poucas_pequenas_a.csv
-echo "Structure,Threads,Elapsed Time" > cheio_muitas_pequenas_a.csv
-echo "Structure,Threads,Elapsed Time" > vazio_poucas_grandes_a.csv
-echo "Structure,Threads,Elapsed Time" > vazio_muitas_grandes_a.csv
-echo "Structure,Threads,Elapsed Time" > cheio_poucas_grandes_a.csv
-echo "Structure,Threads,Elapsed Time" > cheio_muitas_grandes_a.csv
+# echo "Structure,Threads,Elapsed Time" > vazio_poucas_pequenas_a.csv
+# echo "Structure,Threads,Elapsed Time" > vazio_muitas_pequenas_a.csv
+# echo "Structure,Threads,Elapsed Time" > cheio_poucas_pequenas_a.csv
+# echo "Structure,Threads,Elapsed Time" > cheio_muitas_pequenas_a.csv
+# echo "Structure,Threads,Elapsed Time" > vazio_poucas_grandes_a.csv
+# echo "Structure,Threads,Elapsed Time" > vazio_muitas_grandes_a.csv
+# echo "Structure,Threads,Elapsed Time" > cheio_poucas_grandes_a.csv
+# echo "Structure,Threads,Elapsed Time" > cheio_muitas_grandes_a.csv
 
-echo "Structure,Threads,Elapsed Time" > vazio_poucas_pequenas_b.csv
-echo "Structure,Threads,Elapsed Time" > vazio_muitas_pequenas_b.csv
-echo "Structure,Threads,Elapsed Time" > cheio_poucas_pequenas_b.csv
-echo "Structure,Threads,Elapsed Time" > cheio_muitas_pequenas_b.csv
-echo "Structure,Threads,Elapsed Time" > vazio_poucas_grandes_b.csv
-echo "Structure,Threads,Elapsed Time" > vazio_muitas_grandes_b.csv
-echo "Structure,Threads,Elapsed Time" > cheio_poucas_grandes_b.csv
-echo "Structure,Threads,Elapsed Time" > cheio_muitas_grandes_b.csv
+# echo "Structure,Threads,Elapsed Time" > vazio_poucas_pequenas_b.csv
+# echo "Structure,Threads,Elapsed Time" > vazio_muitas_pequenas_b.csv
+# echo "Structure,Threads,Elapsed Time" > cheio_poucas_pequenas_b.csv
+# echo "Structure,Threads,Elapsed Time" > cheio_muitas_pequenas_b.csv
+# echo "Structure,Threads,Elapsed Time" > vazio_poucas_grandes_b.csv
+# echo "Structure,Threads,Elapsed Time" > vazio_muitas_grandes_b.csv
+# echo "Structure,Threads,Elapsed Time" > cheio_poucas_grandes_b.csv
+# echo "Structure,Threads,Elapsed Time" > cheio_muitas_grandes_b.csv
 
-echo "Structure,Threads,Elapsed Time" > vazio_poucas_pequenas_c.csv
-echo "Structure,Threads,Elapsed Time" > vazio_muitas_pequenas_c.csv
-echo "Structure,Threads,Elapsed Time" > cheio_poucas_pequenas_c.csv
-echo "Structure,Threads,Elapsed Time" > cheio_muitas_pequenas_c.csv
-echo "Structure,Threads,Elapsed Time" > vazio_poucas_grandes_c.csv
-echo "Structure,Threads,Elapsed Time" > vazio_muitas_grandes_c.csv
-echo "Structure,Threads,Elapsed Time" > cheio_poucas_grandes_c.csv
-echo "Structure,Threads,Elapsed Time" > cheio_muitas_grandes_c.csv
+# echo "Structure,Threads,Elapsed Time" > vazio_poucas_pequenas_c.csv
+# echo "Structure,Threads,Elapsed Time" > vazio_muitas_pequenas_c.csv
+# echo "Structure,Threads,Elapsed Time" > cheio_poucas_pequenas_c.csv
+# echo "Structure,Threads,Elapsed Time" > cheio_muitas_pequenas_c.csv
+# echo "Structure,Threads,Elapsed Time" > vazio_poucas_grandes_c.csv
+# echo "Structure,Threads,Elapsed Time" > vazio_muitas_grandes_c.csv
+# echo "Structure,Threads,Elapsed Time" > cheio_poucas_grandes_c.csv
+# echo "Structure,Threads,Elapsed Time" > cheio_muitas_grandes_c.csv
 
 
 few_keys_tests=(1 2 3 4 5 6 7 8 9)
@@ -43,7 +43,7 @@ remove=(0.05 0.10 0.05)
 names=(a b c)
 
 threads=(1 4 8 16 32)
-reps=10
+reps=3
 
 make clean
 cmake . -DBIG_VALUES=OFF
@@ -64,20 +64,20 @@ for k in $(seq $reps); do
                 done
 
                 #prepopulated
-                filename="cheio_poucas_pequena_${names[l]}.csv"
+                filename="cheio_poucas_pequenas_${names[l]}.csv"
                 for i in "${few_keys_tests[@]}"; do 
                     ./main $j $operations  $few_keys_range ${search[l]} ${insert[l]} ${remove[l]} $i $few_keys_range $filename
                 done
             
             #many keys
                 #empty
-                filename="vazio_muitas_pequena_${names[l]}.csv"
+                filename="vazio_muitas_pequenas_${names[l]}.csv"
                 for i in "${many_keys_tests[@]}"; do 
                     ./main $j $operations  0 ${search[l]} ${insert[l]} ${remove[l]} $i $many_keys_range $filename
                 done
 
                 #prepopulated
-                filename="cheio_muitas_pequena_${names[l]}.csv"
+                filename="cheio_muitas_pequenas_${names[l]}.csv"
                 for i in "${many_keys_tests[@]}"; do 
                     ./main $j $operations  $many_keys_range ${search[l]} ${insert[l]} ${remove[l]} $i $many_keys_range $filename
                 done
