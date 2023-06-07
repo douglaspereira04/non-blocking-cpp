@@ -3,8 +3,12 @@
 #include <unordered_map>
 #include <vector>
 #include <string> 
+#include <string_view> 
 #include <numeric>
 #include <vector>
+#include <regex>
+
+
 
 double average(std::vector<double> const& v){
     if(v.empty()){
@@ -17,6 +21,10 @@ double average(std::vector<double> const& v){
     }
     
     return sum *1.0/ v.size();
+}
+
+std::string escaped_underline(std::string str){
+  return std::regex_replace(str, std::regex("_"), " ");
 }
 
 std::vector<std::string> dist_a = {
@@ -390,10 +398,12 @@ void plot_files(std::vector<std::string> files, std::string image_name, bool no_
             std::istringstream  ss(line);
 
             getline(ss, temp, ',');
-            size_t space_pos = temp.find(" ");    
+            /*size_t space_pos = temp.find(" ");    
             if (space_pos != std::string::npos) {
                 temp = temp.substr(0,space_pos + 1);
-            }
+            }*/
+            
+            std::replace(temp.begin(), temp.end(), ' ', '_');
             std::string name = temp;
 
             getline(ss, temp, ',');
@@ -404,23 +414,25 @@ void plot_files(std::vector<std::string> files, std::string image_name, bool no_
 
 
             if(map.find(name) == map.end()){
-                std::vector<std::vector<double>> v(4);
+                std::vector<std::vector<double>> v(5);
                 map.emplace(name, v);
 
-                std::vector<double> avgv(4,0.0);
+                std::vector<double> avgv(5,0.0);
                 avg_map.emplace(name, avgv);
             }
-
-            if(threads != 2){
-                int pos = ((int)log2(threads))-2;
-                map[name][pos].push_back(elapsed_time);
+            
+            int pos = ((int)log2(threads))-1;
+            if(pos == -1){
+                pos = 0;
             }
+
+            map[name][pos].push_back(elapsed_time);
         }
 
         for (const auto& kv : map) {
             int i = 0;
             for (auto list : kv.second){
-                if((kv.first == "LockUnordered" /*|| kv.first == "WFCUnorderedMap "*/) && no_lock_unordered){
+                if((kv.first == "STD_Lock" /*|| kv.first == "WFCUnorderedMap "*/) && no_lock_unordered){
                     continue;
                 }
                 double avg;
@@ -441,24 +453,28 @@ void plot_files(std::vector<std::string> files, std::string image_name, bool no_
     }
     
     
-    std::vector<double> x = {1,2,3,4};
-    std::cout << "LibCDSMichael " << avg_map["LibCDSMichael "][0] << avg_map["LibCDSMichael "][1] << std::endl;
-    std::cout << "TBB " << avg_map["TBB"][0] << avg_map["TBB"][1] << std::endl;
+    std::vector<double> x = {1,2,3,4,5};
 
     std::vector<std::string> legend_vector;
     if(no_lock_unordered){
-        avg_map.erase("LockUnordered");
-        //avg_map.erase("WFCUnorderedMap ");
-    }
-    for (const auto& kv : avg_map) {
-        matplot::plot(x, kv.second, "-o");
-        matplot::hold(matplot::on);
-        legend_vector.push_back(kv.first);
+        avg_map.erase("STD_Lock");
     }
 
-    matplot::xticks({0,1,2,3,4,5});
-    matplot::xticklabels({" ","4","8","16","32", " "});
-    matplot::xrange({0.9,4.1});
+    std::string line_spec[] = {"-o", "-x", "-+", "-v", "-^", "-*", "-s", "-d"};
+    int i = 0;
+    for (const auto& kv : avg_map) {
+        std::string_view spec = line_spec[i];
+        matplot::plot(x, kv.second, spec);
+        i = (i+1)%8;
+        matplot::hold(matplot::on);
+        std::string name = escaped_underline(kv.first);
+        std::cout << name << std::endl;
+        legend_vector.push_back(name);
+    }
+
+    matplot::xticks({0,1,2,3,4,5,6});
+    matplot::xticklabels({" ","1","4","8", "16", "32" " "});
+    matplot::xrange({0.9,5.1});
     std::cout << lowest << std::endl;
     std::string lowstr = std::to_string(lowest);
     for (size_t i = 1; i < lowstr.size(); i++)
@@ -475,7 +491,7 @@ void plot_files(std::vector<std::string> files, std::string image_name, bool no_
     lgd->location(matplot::legend::general_alignment::right);
     std::string path = image_name;
     path = "./"+folder+path+".png";
-    matplot::title(image_name);
+    matplot::title("");
     matplot::save(path);
     matplot::hold(false);
 }
@@ -487,6 +503,7 @@ void plot_file(std::string file, bool no_lock_unordered, std::string folder){
 
 void plot_all(bool no_lock_unordered, std::string folder){
     plot_files(all, "geral", no_lock_unordered, folder+"outros/");
+    /*
     plot_files(many_big, "muitas_grandes", no_lock_unordered, folder+"outros/");
 
     plot_files(small, "pequenos", no_lock_unordered, folder+"outros/");
@@ -535,21 +552,31 @@ void plot_all(bool no_lock_unordered, std::string folder){
 
     plot_files(dist_c_big, "dist_c_grandes", no_lock_unordered, folder+"outros/");
     plot_files(dist_c_small, "dist_c_pequenas", no_lock_unordered, folder+"outros/");
+    */
 
-     for (auto &&file : dist_a)
-     {
-         plot_file(file, no_lock_unordered, folder+"dist-95-5-5/");
-     }
+    plot_files(dist_a_big, "dist_a_grandes", no_lock_unordered, folder+"outros/");
+    plot_files(dist_a_small, "dist_a_pequenos", no_lock_unordered, folder+"outros/");
+    
+    plot_files(dist_b_big, "dist_b_grandes", no_lock_unordered, folder+"outros/");
+    plot_files(dist_b_small, "dist_b_pequenos", no_lock_unordered, folder+"outros/");
 
-     for (auto &&file : dist_b)
-     {
-         plot_file(file, no_lock_unordered, folder+"dist-45-45-10/");
-     }
+    plot_files(dist_c_big, "dist_c_grandes", no_lock_unordered, folder+"outros/");
+    plot_files(dist_c_small, "dist_c_pequenas", no_lock_unordered, folder+"outros/");
+    
+    for (auto &&file : dist_a)
+    {
+        plot_file(file, no_lock_unordered, folder+"dist-95-5-5/");
+    }
 
-     for (auto &&file : dist_c)
-     {
-         plot_file(file, no_lock_unordered, folder+"dist-5-95-5/");
-     }
+    for (auto &&file : dist_b)
+    {
+        plot_file(file, no_lock_unordered, folder+"dist-45-45-10/");
+    }
+
+    for (auto &&file : dist_c)
+    {
+        plot_file(file, no_lock_unordered, folder+"dist-5-95-5/");
+    }
 }
 int main(int argc, char *argv[]){
     plot_all(false, "com-lockunordered/");

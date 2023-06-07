@@ -1,31 +1,31 @@
 #!/bin/bash
 
-# echo "Structure,Threads,Elapsed Time" > vazio_poucas_pequenas_a.csv
-# echo "Structure,Threads,Elapsed Time" > vazio_muitas_pequenas_a.csv
-# echo "Structure,Threads,Elapsed Time" > cheio_poucas_pequenas_a.csv
-# echo "Structure,Threads,Elapsed Time" > cheio_muitas_pequenas_a.csv
-# echo "Structure,Threads,Elapsed Time" > vazio_poucas_grandes_a.csv
-# echo "Structure,Threads,Elapsed Time" > vazio_muitas_grandes_a.csv
-# echo "Structure,Threads,Elapsed Time" > cheio_poucas_grandes_a.csv
-# echo "Structure,Threads,Elapsed Time" > cheio_muitas_grandes_a.csv
+echo "Structure,Threads,Elapsed Time" > vazio_poucas_pequenas_a.csv
+echo "Structure,Threads,Elapsed Time" > vazio_muitas_pequenas_a.csv
+echo "Structure,Threads,Elapsed Time" > cheio_poucas_pequenas_a.csv
+echo "Structure,Threads,Elapsed Time" > cheio_muitas_pequenas_a.csv
+echo "Structure,Threads,Elapsed Time" > vazio_poucas_grandes_a.csv
+echo "Structure,Threads,Elapsed Time" > vazio_muitas_grandes_a.csv
+echo "Structure,Threads,Elapsed Time" > cheio_poucas_grandes_a.csv
+echo "Structure,Threads,Elapsed Time" > cheio_muitas_grandes_a.csv
 
-# echo "Structure,Threads,Elapsed Time" > vazio_poucas_pequenas_b.csv
-# echo "Structure,Threads,Elapsed Time" > vazio_muitas_pequenas_b.csv
-# echo "Structure,Threads,Elapsed Time" > cheio_poucas_pequenas_b.csv
-# echo "Structure,Threads,Elapsed Time" > cheio_muitas_pequenas_b.csv
-# echo "Structure,Threads,Elapsed Time" > vazio_poucas_grandes_b.csv
-# echo "Structure,Threads,Elapsed Time" > vazio_muitas_grandes_b.csv
-# echo "Structure,Threads,Elapsed Time" > cheio_poucas_grandes_b.csv
-# echo "Structure,Threads,Elapsed Time" > cheio_muitas_grandes_b.csv
+echo "Structure,Threads,Elapsed Time" > vazio_poucas_pequenas_b.csv
+echo "Structure,Threads,Elapsed Time" > vazio_muitas_pequenas_b.csv
+echo "Structure,Threads,Elapsed Time" > cheio_poucas_pequenas_b.csv
+echo "Structure,Threads,Elapsed Time" > cheio_muitas_pequenas_b.csv
+echo "Structure,Threads,Elapsed Time" > vazio_poucas_grandes_b.csv
+echo "Structure,Threads,Elapsed Time" > vazio_muitas_grandes_b.csv
+echo "Structure,Threads,Elapsed Time" > cheio_poucas_grandes_b.csv
+echo "Structure,Threads,Elapsed Time" > cheio_muitas_grandes_b.csv
 
-# echo "Structure,Threads,Elapsed Time" > vazio_poucas_pequenas_c.csv
-# echo "Structure,Threads,Elapsed Time" > vazio_muitas_pequenas_c.csv
-# echo "Structure,Threads,Elapsed Time" > cheio_poucas_pequenas_c.csv
-# echo "Structure,Threads,Elapsed Time" > cheio_muitas_pequenas_c.csv
-# echo "Structure,Threads,Elapsed Time" > vazio_poucas_grandes_c.csv
-# echo "Structure,Threads,Elapsed Time" > vazio_muitas_grandes_c.csv
-# echo "Structure,Threads,Elapsed Time" > cheio_poucas_grandes_c.csv
-# echo "Structure,Threads,Elapsed Time" > cheio_muitas_grandes_c.csv
+echo "Structure,Threads,Elapsed Time" > vazio_poucas_pequenas_c.csv
+echo "Structure,Threads,Elapsed Time" > vazio_muitas_pequenas_c.csv
+echo "Structure,Threads,Elapsed Time" > cheio_poucas_pequenas_c.csv
+echo "Structure,Threads,Elapsed Time" > cheio_muitas_pequenas_c.csv
+echo "Structure,Threads,Elapsed Time" > vazio_poucas_grandes_c.csv
+echo "Structure,Threads,Elapsed Time" > vazio_muitas_grandes_c.csv
+echo "Structure,Threads,Elapsed Time" > cheio_poucas_grandes_c.csv
+echo "Structure,Threads,Elapsed Time" > cheio_muitas_grandes_c.csv
 
 
 few_keys_tests=(1 2 3 4 5 6 7 8 9)
@@ -43,7 +43,7 @@ remove=(0.05 0.10 0.05)
 names=(a b c)
 
 threads=(1 4 8 16 32)
-reps=3
+reps=5
 
 make clean
 cmake . -DBIG_VALUES=OFF
@@ -90,7 +90,7 @@ make clean
 cmake . -DBIG_VALUES=ON
 make -j4
 
-for k in {0..0}; do
+for k in $(seq $reps); do
 #rep
     for j in "${threads[@]}"; do
     #threads
