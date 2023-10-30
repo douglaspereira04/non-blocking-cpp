@@ -220,7 +220,7 @@ Test Test::STDLock(unsigned long operations, unsigned int thread_amount,
 	map_t *map = new map_t();
 	Test result = table_test<value_t, map_t, STL, dist_t, dist_args_t...>(map, operations, thread_amount, pre_population, get_proportion, set_proportion, delete_proportion, distribution_args...);
 	delete map;
-	result.structure = "STD_Lock";
+	result.structure = "STL";
 
 	return result;
 };
@@ -242,7 +242,7 @@ template <typename value_t, typename reclaimer_t, std::size_t Buckets, typename 
 
 	Test result = table_test<value_t, map_t, XENIUM, dist_t, dist_args_t...>(map, operations, thread_amount, pre_population, get_proportion, set_proportion, delete_proportion, distribution_args...);
 	delete map;
-	result.structure = "Xenium_Michael";
+	result.structure = "Xenium Michael";
 
 	return result;
 };
@@ -278,7 +278,7 @@ Test Test::WFCUnorderedMap(unsigned long operations, unsigned int thread_amount,
 	
 	Test result = table_test<value_t, map_t, WFC, dist_t, dist_args_t...>(map, operations, thread_amount, pre_population, get_proportion, set_proportion, delete_proportion, distribution_args...);
 	delete map;
-	result.structure = "WFC_Laborde";
+	result.structure = "WFC Laborde";
 
 	return result;
 };
@@ -307,7 +307,7 @@ Test Test::LibCDSFeldman(unsigned long operations, unsigned int thread_amount,
 		
     }    
     cds::Terminate();
-	result.structure = "LibCDS_Feldman";
+	result.structure = "CDS Feldman";
 	return result;
 
 };
@@ -334,7 +334,7 @@ Test Test::LibCDSMichael(unsigned long operations, unsigned int thread_amount,
 		
     }    
     cds::Terminate();
-	result.structure = "LibCDS_Michael";
+	result.structure = "CDS Michael";
 	return result;
 
 };
@@ -374,7 +374,7 @@ Test Test::LibCDSSplitOrdered(unsigned long operations, unsigned int thread_amou
 		
     }    
     cds::Terminate();
-	result.structure = "LibCDS_SplitOrdered";
+	result.structure = "CDS SplitOrdered";
 	return result;
 
 };

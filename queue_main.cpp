@@ -1,6 +1,6 @@
 #include <iostream>
 #include <random>
-#include "queue_test.cpp"
+#include "queue_tests.cpp"
 #include <xenium/michael_scott_queue.hpp>
 #include <xenium/policy.hpp>
 #include <xenium/reclamation/lock_free_ref_count.hpp>
@@ -16,21 +16,10 @@
 #include <cds/gc/hp.h>
 #include <cds/gc/dhp.h>
 
-std::ofstream TEST_FILE;
-std::string TEST_FILE_NAME = "test.csv";
-
-void append_to_file(Test test, std::string text){
-
-    TEST_FILE.open (TEST_FILE_NAME, std::ios_base::app);
-    TEST_FILE << test.Structure() << text <<","
-        << test.ThreadAmount() << ","
-        << test.ElapsedTime() << "\n";
-    TEST_FILE.close();
-}
 void print_test(Test test, std::string text){
 
-    std::cout << test.Structure() << text <<",\t"
-        << test.ThreadAmount() << ",\t"
+    std::cout << test.Structure() << text <<","
+        << test.ThreadAmount() <<","
         << test.ElapsedTime() << "\n";
 }
 
@@ -207,10 +196,8 @@ const size_t THREAD_AMOUNT = 1;
 const size_t OPERATIONS = 2;
 const size_t PRE_POPULATION = 3;
 const size_t DATA_STRUCTURE = 4;
-const size_t FILE_NAME = 5;
 
 int main(int argc, char *argv[]){
-    //TEST_FILE_NAME = argv[FILE_NAME];
     
     test<boost::random::uniform_int_distribution<uint32_t>, long, long>(
         atoi(argv[THREAD_AMOUNT]),

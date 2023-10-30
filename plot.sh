@@ -1,28 +1,11 @@
 #!/bin/bash
+make -j4
 
-./plot vazio_poucas_pequenas_a.csv
-./plot vazio_muitas_pequenas_a.csv
-./plot cheio_poucas_pequenas_a.csv
-./plot cheio_muitas_pequenas_a.csv
-./plot vazio_poucas_grandes_a.csv
-./plot vazio_muitas_grandes_a.csv
-./plot cheio_poucas_grandes_a.csv
-./plot cheio_muitas_grandes_a.csv
+mkdir -p results/hashmap/all/dist-45-45-10/
+mkdir -p results/hashmap/all/dist-90-5-5/
+mkdir -p results/hashmap/all/dist-5-90-5/
+mkdir -p results/hashmap/fine/dist-45-45-10/
+mkdir -p results/hashmap/fine/dist-90-5-5/
+mkdir -p results/hashmap/fine/dist-5-90-5/
 
-./plot vazio_poucas_pequenas_b.csv
-./plot vazio_muitas_pequenas_b.csv
-./plot cheio_poucas_pequenas_b.csv
-./plot cheio_muitas_pequenas_b.csv
-./plot vazio_poucas_grandes_b.csv
-./plot vazio_muitas_grandes_b.csv
-./plot cheio_poucas_grandes_b.csv
-./plot cheio_muitas_grandes_b.csv
-
-./plot vazio_poucas_pequenas_c.csv
-./plot vazio_muitas_pequenas_c.csv
-./plot cheio_poucas_pequenas_c.csv
-./plot cheio_muitas_pequenas_c.csv
-./plot vazio_poucas_grandes_c.csv
-./plot vazio_muitas_grandes_c.csv
-./plot cheio_poucas_grandes_c.csv
-./plot cheio_muitas_grandes_c.csv
+./hashmap_plot

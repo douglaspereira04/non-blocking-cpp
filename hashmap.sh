@@ -1,170 +1,144 @@
 #!/bin/bash
+mkdir -p results/hashmap
+echo "Structure,Threads,Elapsed Time" > results/hashmap/vazio_poucas_pequenas_a.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/vazio_muitas_pequenas_a.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/cheio_poucas_pequenas_a.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/cheio_muitas_pequenas_a.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/vazio_poucas_grandes_a.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/vazio_muitas_grandes_a.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/cheio_poucas_grandes_a.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/cheio_muitas_grandes_a.csv
 
-echo "Structure,Threads,Elapsed Time" > vazio_poucas_pequenas_a.csv
-echo "Structure,Threads,Elapsed Time" > vazio_muitas_pequenas_a.csv
-echo "Structure,Threads,Elapsed Time" > cheio_poucas_pequenas_a.csv
-echo "Structure,Threads,Elapsed Time" > cheio_muitas_pequenas_a.csv
-echo "Structure,Threads,Elapsed Time" > vazio_poucas_grandes_a.csv
-echo "Structure,Threads,Elapsed Time" > vazio_muitas_grandes_a.csv
-echo "Structure,Threads,Elapsed Time" > cheio_poucas_grandes_a.csv
-echo "Structure,Threads,Elapsed Time" > cheio_muitas_grandes_a.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/vazio_poucas_pequenas_b.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/vazio_muitas_pequenas_b.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/cheio_poucas_pequenas_b.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/cheio_muitas_pequenas_b.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/vazio_poucas_grandes_b.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/vazio_muitas_grandes_b.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/cheio_poucas_grandes_b.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/cheio_muitas_grandes_b.csv
 
-echo "Structure,Threads,Elapsed Time" > vazio_poucas_pequenas_b.csv
-echo "Structure,Threads,Elapsed Time" > vazio_muitas_pequenas_b.csv
-echo "Structure,Threads,Elapsed Time" > cheio_poucas_pequenas_b.csv
-echo "Structure,Threads,Elapsed Time" > cheio_muitas_pequenas_b.csv
-echo "Structure,Threads,Elapsed Time" > vazio_poucas_grandes_b.csv
-echo "Structure,Threads,Elapsed Time" > vazio_muitas_grandes_b.csv
-echo "Structure,Threads,Elapsed Time" > cheio_poucas_grandes_b.csv
-echo "Structure,Threads,Elapsed Time" > cheio_muitas_grandes_b.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/vazio_poucas_pequenas_c.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/vazio_muitas_pequenas_c.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/cheio_poucas_pequenas_c.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/cheio_muitas_pequenas_c.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/vazio_poucas_grandes_c.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/vazio_muitas_grandes_c.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/cheio_poucas_grandes_c.csv
+echo "Structure,Threads,Elapsed Time" > results/hashmap/cheio_muitas_grandes_c.csv
 
-echo "Structure,Threads,Elapsed Time" > vazio_poucas_pequenas_c.csv
-echo "Structure,Threads,Elapsed Time" > vazio_muitas_pequenas_c.csv
-echo "Structure,Threads,Elapsed Time" > cheio_poucas_pequenas_c.csv
-echo "Structure,Threads,Elapsed Time" > cheio_muitas_pequenas_c.csv
-echo "Structure,Threads,Elapsed Time" > vazio_poucas_grandes_c.csv
-echo "Structure,Threads,Elapsed Time" > vazio_muitas_grandes_c.csv
-echo "Structure,Threads,Elapsed Time" > cheio_poucas_grandes_c.csv
-echo "Structure,Threads,Elapsed Time" > cheio_muitas_grandes_c.csv
-#few_keys_range=1000
-#many_keys_range=100000
-#operations=50000000
 
-few_keys_range=1000
-many_keys_range=1000000
+few_keys_tests=(1 2 3 4 5 6 7 8 9)
+many_keys_tests=(1 2 3 4 5 6 10 11 12)
+
+few_keys_range=1024
+many_keys_range=1048576
+
 operations=10000000
 
-for k in {1..20}; do
 
-    for j in 4 8 16 32; do
-        
-        #a 90 5 5
+search=(0.90 0.45 0.05)
+insert=(0.05 0.45 0.90)
+remove=(0.05 0.10 0.05)
+names=(a b c)
 
-        #vazio - poucas chaves - valores pequenas
-        for i in 1 2 3 5 7 11; do 
-            ./hashmap $j $operations  0 0.9 0.05 0.05 $i $few_keys_range vazio_poucas_pequenas_a.csv
+threads=(1 4 8 16 32)
+reps=3
+
+make clean
+cmake . -DBIG_VALUES=OFF
+make -j4
+
+for k in $(seq $reps); do
+#rep
+    for j in "${threads[@]}"; do
+    #threads
+        for l in {0..2}; do
+        #distribution
+
+            #few keys
+                #empty
+                echo "${j}_vazio_poucas_pequenas_${names[l]}"
+                filename="vazio_poucas_pequenas_${names[l]}.csv"
+                for i in "${few_keys_tests[@]}"; do 
+                    echo "${i}"
+                    ./hashmap $j $operations  0 ${search[l]} ${insert[l]} ${remove[l]} $i $few_keys_range >> results/hashmap/$filename
+                done
+
+                #prepopulated
+                echo "${j}_cheio_poucas_pequenas_${names[l]}"
+                filename="cheio_poucas_pequenas_${names[l]}.csv"
+                for i in "${few_keys_tests[@]}"; do 
+                    echo "${i}"
+                    ./hashmap $j $operations  $few_keys_range ${search[l]} ${insert[l]} ${remove[l]} $i $few_keys_range >> results/hashmap/$filename
+                done
+            
+            #many keys
+                #empty
+                echo "${j}_vazio_muitas_pequenas_${names[l]}"
+                filename="vazio_muitas_pequenas_${names[l]}.csv"
+                for i in "${many_keys_tests[@]}"; do 
+                    echo "${i}"
+                    ./hashmap $j $operations  0 ${search[l]} ${insert[l]} ${remove[l]} $i $many_keys_range >> results/hashmap/$filename
+                done
+
+                #prepopulated
+                echo "${j}_cheio_muitas_pequenas_${names[l]}"
+                filename="cheio_muitas_pequenas_${names[l]}.csv"
+                for i in "${many_keys_tests[@]}"; do 
+                    echo "${i}"
+                    ./hashmap $j $operations  $many_keys_range ${search[l]} ${insert[l]} ${remove[l]} $i $many_keys_range >> results/hashmap/$filename
+                done
+
         done
+    done
+done
 
-        #vazio - muitas chaves - valores pequenas
-        for i in 1 2 4 5 7 12; do 
-            ./hashmap $j $operations  0 0.9 0.05 0.05 $i $many_keys_range vazio_muitas_pequenas_a.csv
+make clean
+cmake . -DBIG_VALUES=ON
+make -j4
+
+for k in $(seq $reps); do
+#rep
+    for j in "${threads[@]}"; do
+    #threads
+        for l in {0..2}; do
+        #distribution
+
+            #few keys
+                #empty
+                echo "${j}_vazio_poucas_grandes_${names[l]}"
+                filename="vazio_poucas_grandes_${names[l]}.csv"
+                for i in "${few_keys_tests[@]}"; do 
+                    echo "${i}"
+                    ./hashmap $j $operations  0 ${search[l]} ${insert[l]} ${remove[l]} $i $few_keys_range >> results/hashmap/$filename
+                done
+
+                #prepopulated
+                echo "${j}_cheio_poucas_grandes_${names[l]}"
+                filename="cheio_poucas_grandes_${names[l]}.csv"
+                for i in "${few_keys_tests[@]}"; do 
+                    echo "${i}"
+                    ./hashmap $j $operations  $few_keys_range ${search[l]} ${insert[l]} ${remove[l]} $i $few_keys_range >> results/hashmap/$filename
+                done
+            
+            #many keys
+                #empty
+                echo "${j}vazio_muitas_grandes_${names[l]}"
+                filename="vazio_muitas_grandes_${names[l]}.csv"
+                for i in "${many_keys_tests[@]}"; do 
+                    echo "${i}"
+                    ./hashmap $j $operations  0 ${search[l]} ${insert[l]} ${remove[l]} $i $many_keys_range >> results/hashmap/$filename
+                done
+
+                #prepopulated
+                echo "${j}_cheio_muitas_grandes_${names[l]}"
+                filename="cheio_muitas_grandes_${names[l]}.csv"
+                for i in "${many_keys_tests[@]}"; do 
+                    echo "${i}"
+                    ./hashmap $j $operations  $many_keys_range ${search[l]} ${insert[l]} ${remove[l]} $i $many_keys_range >> results/hashmap/$filename
+                done
+
         done
-
-        #prepopulado - poucas chaves - valores pequenas
-        for i in 1 2 3 5 7 11; do 
-            ./hashmap $j $operations  $few_keys_range 0.9 0.05 0.05 $i $few_keys_range cheio_poucas_pequenas_a.csv
-        done
-
-        #prepopulado - muitas chaves - valores pequenas
-        for i in 1 2 4 5 7 12; do 
-            ./hashmap $j $operations  $many_keys_range 0.9 0.05 0.05 $i $many_keys_range cheio_muitas_pequenas_a.csv
-        done
-
-        #vazio - poucas chaves - valores grandes
-        for i in 14 15 16 20 24; do 
-            ./hashmap $j $operations  0 0.9 0.05 0.05 $i $few_keys_range vazio_poucas_grandes_a.csv
-        done
-
-        #vazio - muitas chaves - valores grandes
-        for i in 14 15 17 20 25; do 
-            ./hashmap $j $operations  0 0.9 0.05 0.05 $i $many_keys_range vazio_muitas_grandes_a.csv
-        done
-
-        #prepopulado - poucas chaves - valores grandes
-        for i in 14 15 16 20 24; do 
-            ./hashmap $j $operations  $few_keys_range 0.9 0.05 0.05 $i $few_keys_range cheio_poucas_grandes_a.csv
-        done
-
-        #prepopulado - muitas chaves - valores grandes
-        for i in 14 15 17 20 25; do 
-            ./hashmap $j $operations  $many_keys_range 0.9 0.05 0.05 $i $many_keys_range cheio_muitas_grandes_a.csv
-        done
-
-
-        #b 45 45 10
-
-        #vazio - poucas chaves - valores pequenas
-        for i in 1 2 3 5 7 11; do 
-            ./hashmap $j $operations  0 0.45 0.45 0.10 $i $few_keys_range vazio_poucas_pequenas_b.csv
-        done
-
-        #vazio - muitas chaves - valores pequenas
-        for i in 1 2 4 5 7 12; do 
-            ./hashmap $j $operations  0 0.45 0.45 0.10  $i $many_keys_range vazio_muitas_pequenas_b.csv
-        done
-
-        #prepopulado - poucas chaves - valores pequenas
-        for i in 1 2 3 5 7 11; do 
-            ./hashmap $j $operations  $few_keys_range 0.45 0.45 0.10  $i $few_keys_range cheio_poucas_pequenas_b.csv
-        done
-
-        #prepopulado - muitas chaves - valores pequenas
-        for i in 1 2 4 5 7 12; do 
-            ./hashmap $j $operations  $many_keys_range 0.45 0.45 0.10  $i $many_keys_range cheio_muitas_pequenas_b.csv
-        done
-
-        #vazio - poucas chaves - valores grandes
-        for i in 14 15 16 20 24; do 
-            ./hashmap $j $operations  0 0.45 0.45 0.10  $i $few_keys_range vazio_poucas_grandes_b.csv
-        done
-
-        #vazio - muitas chaves - valores grandes
-        for i in 14 15 17 20 25; do 
-            ./hashmap $j $operations  0 0.45 0.45 0.10  $i $many_keys_range vazio_muitas_grandes_b.csv
-        done
-
-        #prepopulado - poucas chaves - valores grandes
-        for i in 14 15 16 20 24; do 
-            ./hashmap $j $operations  $few_keys_range 0.45 0.45 0.10  $i $few_keys_range cheio_poucas_grandes_b.csv
-        done
-
-        #prepopulado - muitas chaves - valores grandes
-        for i in 14 15 17 20 25; do 
-            ./hashmap $j $operations  $many_keys_range 0.45 0.45 0.10  $i $many_keys_range cheio_muitas_grandes_b.csv
-        done
-
-        #c 5 90 5
-
-        #vazio - poucas chaves - valores pequenas
-        for i in 1 2 3 5 7 11; do 
-            ./hashmap $j $operations  0 0.05 0.9 0.05  $i $few_keys_range vazio_poucas_pequenas_c.csv
-        done
-
-        #vazio - muitas chaves - valores pequenas
-        for i in 1 2 4 5 7 12; do 
-            ./hashmap $j $operations  0 0.05 0.9 0.05 $i $many_keys_range vazio_muitas_pequenas_c.csv
-        done
-
-        #prepopulado - poucas chaves - valores pequenas
-        for i in 1 2 3 5 7 11; do 
-            ./hashmap $j $operations  $few_keys_range 0.05 0.9 0.05 $i $few_keys_range cheio_poucas_pequenas_c.csv
-        done
-
-        #prepopulado - muitas chaves - valores pequenas
-        for i in 1 2 4 5 7 12; do 
-            ./hashmap $j $operations  $many_keys_range 0.05 0.9 0.05 $i $many_keys_range cheio_muitas_pequenas_c.csv
-        done
-
-        #vazio - poucas chaves - valores grandes
-        for i in 14 15 16 20 24; do 
-            ./hashmap $j $operations  0 0.05 0.9 0.05 $i $few_keys_range vazio_poucas_grandes_c.csv
-        done
-
-        #vazio - muitas chaves - valores grandes
-        for i in 14 15 17 20 25; do 
-            ./hashmap $j $operations  0 0.05 0.9 0.05 $i $many_keys_range vazio_muitas_grandes_c.csv
-        done
-
-        #prepopulado - poucas chaves - valores grandes
-        for i in 14 15 16 20 24; do 
-            ./hashmap $j $operations  $few_keys_range 0.05 0.9 0.05 $i $few_keys_range cheio_poucas_grandes_c.csv
-        done
-
-        #prepopulado - muitas chaves - valores grandes
-        for i in 14 15 17 20 25; do 
-            ./hashmap $j $operations  $many_keys_range 0.05 0.9 0.05 $i $many_keys_range cheio_muitas_grandes_c.csv
-        done
-
-
     done
 done
