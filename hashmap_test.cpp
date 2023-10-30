@@ -4,15 +4,16 @@
 #include <unordered_map>
 #include <tbb/concurrent_hash_map.h>
 #include <xenium/harris_michael_hash_map.hpp>
+#include <xenium/utils.hpp>
 #include <string>
 #include <wfc/unordered_map.hpp>
-
+#include <cds/container/michael_list_hp.h>
 #include <cds/container/feldman_hashmap_hp.h>
 #include <cds/container/feldman_hashmap_dhp.h>
 #include <cds/container/michael_kvlist_hp.h>
 #include <cds/container/michael_kvlist_dhp.h>
 #include <cds/container/michael_map.h>
-#include <lockfreehashtable/lockfree_hashtable.h>
+#include <cds/container/split_list_map.h>
 #include <cds/init.h>
 #include <thread>
 #include <mutex>
@@ -21,10 +22,12 @@
 
 
 
+enum LIB{
+	LIBCDS, STL, TBB, XENIUM, WFC
+};
 
 class Test{
 protected:
-#include <lockfreehashtable/lockfree_hashtable.h>
 
 	std::string structure;
 	unsigned long elapsed_time;
@@ -37,40 +40,40 @@ public:
 	Test(std::string structure, unsigned long elapsed_time, unsigned long operations, unsigned int thread_amount);
 	~Test();
 	
-template <typename ValueType, typename Reclaimer, std::size_t Buckets, typename Distribution, typename ...DistributionArgs> 
-		static Test XeniumHarrisMichael(unsigned long operations, 
+template <typename value_t, typename reclaimer_t, std::size_t Buckets, typename dist_t, typename ...dist_args_t> 
+		static Test XeniumMichael(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
-		double setProportion, double deleteProportion, DistributionArgs... distribution_args);
+		double setProportion, double deleteProportion, dist_args_t... distribution_args);
 
-	template <typename ValueType, typename Distribution, typename ...DistributionArgs> 
-		static Test LockUnordered(unsigned long operations, 
+	template <typename value_t, typename dist_t, typename ...dist_args_t> 
+		static Test STDLock(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
-		double setProportion, double deleteProportion, DistributionArgs... distribution_args);
+		double setProportion, double deleteProportion, dist_args_t... distribution_args);
 		
-	template <typename ValueType, typename Distribution, typename ...DistributionArgs> 
+	template <typename value_t, typename dist_t, typename ...dist_args_t> 
 		static Test TBBMap(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
-		double setProportion, double deleteProportion, DistributionArgs... distribution_args);
+		double setProportion, double deleteProportion, dist_args_t... distribution_args);
 
-	template <typename ValueType, std::size_t node_array_size, typename Distribution, typename ...DistributionArgs> 
+	template <typename value_t, std::size_t node_array_size, typename dist_t, typename ...dist_args_t> 
 		static Test WFCUnorderedMap(unsigned long operations, 
 		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
-		double setProportion, double deleteProportion, DistributionArgs... distribution_args);
+		double setProportion, double deleteProportion, dist_args_t... distribution_args);
 
-	template <typename ValueType, typename Distribution, typename ...DistributionArgs> 
-		static Test Bhhbazinga(unsigned long operations, 
-		unsigned int thread_amount, unsigned long prePopulation, double getProportion, 
-		double setProportion, double deleteProportion, DistributionArgs... distribution_args);
-
-	template <typename ValueType, typename GC, size_t head_bits, size_t array_bits, typename Distribution, typename ...DistributionArgs> 
+	template <typename value_t, typename gc_t, size_t head_bits, size_t array_bits, typename dist_t, typename ...dist_args_t> 
 		static Test LibCDSFeldman(unsigned long operations, unsigned int thread_amount, 
 		unsigned long pre_population, double get_proportion, double set_proportion, 
-		double delete_proportion, DistributionArgs... distribution_args);
+		double delete_proportion, dist_args_t... distribution_args);
 
-	template <typename ValueType, typename GC, size_t MaxItemCount, size_t LoadFactor, typename Distribution, typename ...DistributionArgs> 
+	template <typename value_t, typename gc_t, size_t MaxItemCount, size_t LoadFactor, typename dist_t, typename ...dist_args_t> 
 		static Test LibCDSMichael(unsigned long operations, unsigned int thread_amount, 
 		unsigned long pre_population, double get_proportion, double set_proportion, 
-		double delete_proportion, DistributionArgs... distribution_args);
+		double delete_proportion, dist_args_t... distribution_args);
+
+	template <typename value_t, typename gc_t, size_t MaxItemCount, size_t LoadFactor, typename dist_t, typename ...dist_args_t> 
+		static Test LibCDSSplitOrdered(unsigned long operations, unsigned int thread_amount, 
+		unsigned long pre_population, double get_proportion, double set_proportion, 
+		double delete_proportion, dist_args_t... distribution_args);
 
 
 	std::string Structure(){
@@ -103,49 +106,97 @@ Test::Test(std::string structure, unsigned long elapsed_time, unsigned long oper
 
 Test::~Test(){};
 
-template <typename ValueType, typename Reclaimer, std::size_t Buckets, typename Distribution, typename ...DistributionArgs> 
-	Test Test::XeniumHarrisMichael(unsigned long operations, unsigned int thread_amount, 
+template <typename value_t, typename map_t, LIB L, typename dist_t, typename ...dist_args_t> 
+Test table_test(map_t *map, unsigned long operations, unsigned int thread_amount, 
 	unsigned long pre_population, double get_proportion, double set_proportion, 
-	double delete_proportion, DistributionArgs... distribution_args){
+	double delete_proportion, dist_args_t... distribution_args){
 
 	unsigned long elapsed_time;
 	std::thread thread[thread_amount];
-	
-	xenium::harris_michael_hash_map
-		<uint32_t, ValueType, xenium::policy::reclaimer
-			<Reclaimer>, xenium::policy::buckets<Buckets>> map;
+	std::mutex mtx;
+
 
 	
 	{//populacao inicial
 		for (uint32_t i = 0; i < pre_population; i++){
-			ValueType v;
-			map.emplace(i, v);
+			value_t v;
+			if constexpr(L == XENIUM || L == STL){
+				map->emplace(i, v);
+			} else if constexpr(L == TBB){
+				typename map_t::accessor a;
+				map->emplace(a, i, v);
+			} else if constexpr(L == WFC || L == LIBCDS){
+				map->insert(i,v);
+			}
 		}
 	}
 
-	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
+	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+	
 	for (size_t i = 0; i < thread_amount; i++){
 		thread[i] = std::thread([&](){
-			boost::random::mt19937 generator;
-			Distribution distribution(distribution_args...);
-			boost::random::uniform_real_distribution<double> uniform(0.0,1.0);
+			if constexpr(L == LIBCDS){
+				cds::threading::Manager::attachThread();
+			}
 
+			boost::random::mt19937 generator;
+			dist_t distribution(distribution_args...);
+			boost::random::uniform_real_distribution<double> uniform(0.0,1.0);
+			
 			for (size_t i = 0; i < operations/thread_amount; i++){
 				double chance = uniform(generator);
 				uint32_t key = (uint32_t)distribution(generator);
-
+				
 				if (chance <= get_proportion) {
 					// get
-					map.find(key);
+					
+					if constexpr(L == STL){
+						mtx.lock();
+						map->find(key);
+						mtx.unlock();
+					} else if constexpr(L == XENIUM ){
+						(*map)[key];
+					} else if constexpr(L == TBB){
+						typename map_t::accessor a;
+						map->find(a, key);
+					} else if constexpr(L == WFC){
+						map->get(key);
+					} else if constexpr(L == LIBCDS){
+						typedef typename map_t::guarded_ptr gp_t;
+						gp_t gp = gp_t( map->get(key));
+					}
 				} else if (chance <= (get_proportion + set_proportion)) {
 					// set
-					ValueType v;
-					map.emplace(key, v);
+					value_t v;
+					if constexpr(L == STL){
+						mtx.lock();
+						map->emplace(key, v);
+						mtx.unlock();
+					} else if constexpr(L == XENIUM ){
+						map->emplace(key, v);
+					} else if constexpr(L == TBB){
+						typename map_t::accessor a;
+						map->emplace(a, key, v);
+					} else if constexpr(L == WFC || L == LIBCDS){
+						map->insert(key,v);
+					}
 				} else {
 					// delete
-					map.erase(key);
+					if constexpr(L == STL){
+						mtx.lock();
+						map->erase(key);
+						mtx.unlock();
+					} else if constexpr(L == XENIUM || L == TBB || LIBCDS){
+						map->erase(key);
+					} else if constexpr(L == WFC ){
+						map->remove(key);
+					}
 				}
+			}
+
+			if constexpr(L == LIBCDS){
+				cds::threading::Manager::detachThread();
 			}
 		});
 	}
@@ -156,366 +207,174 @@ template <typename ValueType, typename Reclaimer, std::size_t Buckets, typename 
 
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
-	return Test("XeniumHarrisMichael", elapsed_time, operations, thread_amount);
+
+	return Test("", elapsed_time, operations, thread_amount);
+}
+
+template <typename value_t, typename dist_t, typename ...dist_args_t> 
+Test Test::STDLock(unsigned long operations, unsigned int thread_amount, 
+	unsigned long pre_population, double get_proportion, double set_proportion, 
+	double delete_proportion, dist_args_t... distribution_args){
+	
+	typedef std::unordered_map<uint32_t, value_t> map_t;
+	map_t *map = new map_t();
+	Test result = table_test<value_t, map_t, STL, dist_t, dist_args_t...>(map, operations, thread_amount, pre_population, get_proportion, set_proportion, delete_proportion, distribution_args...);
+	delete map;
+	result.structure = "STD_Lock";
+
+	return result;
 };
 
-
-template <typename ValueType, typename Distribution, typename ...DistributionArgs> 
-Test Test::LockUnordered(unsigned long operations, unsigned int thread_amount, 
+template <typename value_t, typename reclaimer_t, std::size_t Buckets, typename dist_t, typename ...dist_args_t> 
+	Test Test::XeniumMichael(unsigned long operations, unsigned int thread_amount, 
 	unsigned long pre_population, double get_proportion, double set_proportion, 
-	double delete_proportion, DistributionArgs... distribution_args){
+	double delete_proportion, dist_args_t... distribution_args){
 
-	std::mutex mutex;
-	
 	unsigned long elapsed_time;
 	std::thread thread[thread_amount];
-	std::unordered_map<uint32_t, ValueType> map;
 	
-	{//populacao inicial
-		for (uint32_t i = 0; i < pre_population; i++){
-			ValueType v;
-			map.emplace(i, v);
-		}
-	}
+	typedef xenium::harris_michael_hash_map
+		<uint32_t, value_t, xenium::policy::reclaimer
+			<reclaimer_t>, xenium::policy::buckets<Buckets>,
+			xenium::policy::map_to_bucket<xenium::utils::modulo<uint32_t>>> map_t;
 
-	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+	map_t *map = new map_t();
 
-	for (size_t i = 0; i < thread_amount; i++){
-		thread[i] = std::thread([&](){
-			boost::random::mt19937 generator;
-			Distribution distribution(distribution_args...);
-			boost::random::uniform_real_distribution<double> uniform(0.0,1.0);
+	Test result = table_test<value_t, map_t, XENIUM, dist_t, dist_args_t...>(map, operations, thread_amount, pre_population, get_proportion, set_proportion, delete_proportion, distribution_args...);
+	delete map;
+	result.structure = "Xenium_Michael";
 
-			for (size_t i = 0; i < operations/thread_amount; i++){
-				double chance = uniform(generator);
-				uint32_t key = (uint32_t)distribution(generator);
-
-				if (chance <= get_proportion) {
-					// get
-					mutex.lock();
-					map.find(key);
-					mutex.unlock();
-				} else if (chance <= (get_proportion + set_proportion)) {
-					// set
-					ValueType v;
-					mutex.lock();
-					map.emplace(key, v);
-					mutex.unlock();
-				} else {
-					// delete
-					mutex.lock();
-					map.erase(key);
-					mutex.unlock();
-				}
-			}
-		});
-	}
-
-	for (size_t i = 0; i < thread_amount; i++){
-		thread[i].join();
-	}
-
-	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-	elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
-	return Test("LockUnordered", elapsed_time, operations, thread_amount);
+	return result;
 };
 
-template <typename ValueType, typename Distribution, typename ...DistributionArgs> 
+template <typename value_t, typename dist_t, typename ...dist_args_t> 
 Test Test::TBBMap(unsigned long operations, unsigned int thread_amount, 
 	unsigned long pre_population, double get_proportion, double set_proportion, 
-	double delete_proportion, DistributionArgs... distribution_args){
+	double delete_proportion, dist_args_t... distribution_args){
 
 
 	unsigned long elapsed_time;
 	std::thread thread[thread_amount];
-	typedef tbb::concurrent_hash_map<uint32_t,ValueType> tbb_map;
-	tbb_map map;
+	typedef tbb::concurrent_hash_map<uint32_t,value_t> map_t;
+	map_t *map = new map_t();
 	
+	Test result = table_test<value_t, map_t, TBB, dist_t, dist_args_t...>(map, operations, thread_amount, pre_population, get_proportion, set_proportion, delete_proportion, distribution_args...);
+	delete map;
+	result.structure = "TBB";
 
-	{//populacao inicial
-
-		for (uint32_t i = 0; i < pre_population; i++){
-			ValueType v;
-			typename tbb_map::accessor a;
-			map.emplace(a, i, v);
-		}
-	}
-
-	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-
-	for (size_t i = 0; i < thread_amount; i++){
-		thread[i] = std::thread([&](){
-			boost::random::mt19937 generator;
-			Distribution distribution(distribution_args...);
-			boost::random::uniform_real_distribution<double> uniform(0.0,1.0);
-
-			for (size_t i = 0; i < operations/thread_amount; i++){
-				double chance = uniform(generator);
-				uint32_t key = (uint32_t)distribution(generator);
-
-				if (chance <= get_proportion) {
-					// get
-					typename tbb_map::accessor a;
-					map.find(a, key);
-				} else if (chance <= (get_proportion + set_proportion)) {
-					// set
-					ValueType v;
-					typename tbb_map::accessor a;
-					map.emplace(a, key, v);
-				} else {
-					// delete
-					map.erase(key);
-				}
-			}
-		});
-	}
-
-	for (size_t i = 0; i < thread_amount; i++){
-		thread[i].join();
-	}
-
-	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-	elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
-	return Test("TBB", elapsed_time, operations, thread_amount);
+	return result;
 };
 
 
-template <typename ValueType, std::size_t node_array_size, typename Distribution, typename ...DistributionArgs> 
+template <typename value_t, std::size_t node_array_size, typename dist_t, typename ...dist_args_t> 
 Test Test::WFCUnorderedMap(unsigned long operations, unsigned int thread_amount, 
 	unsigned long pre_population, double get_proportion, double set_proportion, 
-	double delete_proportion, DistributionArgs... distribution_args){
+	double delete_proportion, dist_args_t... distribution_args){
 	
 	unsigned long elapsed_time;
 	std::thread thread[thread_amount];
-	wfc::unordered_map<uint32_t,ValueType> map(node_array_size, thread_amount, thread_amount);
-
-	{//populacao inicial
-		for (uint32_t i = 0; i < pre_population; i++){
-			ValueType v;
-			map.insert(i,v);
-		}
-	}
-	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-
-	for (size_t i = 0; i < thread_amount; i++){
-		thread[i] = std::thread([&](){
-			boost::random::mt19937 generator;
-			Distribution distribution(distribution_args...);
-			boost::random::uniform_real_distribution<double> uniform(0.0,1.0);
-
-			for (size_t i = 0; i < operations/thread_amount; i++){
-				double chance = uniform(generator);
-				uint32_t key = (uint32_t)distribution(generator);
-
-				if (chance <= get_proportion) {
-					// get
-					map.get(key);
-				} else if (chance <= (get_proportion + set_proportion)) {
-					// set
-					ValueType v;
-					map.insert(key, v);
-				} else {
-					// delete
-					map.remove(key);
-				}
-			}
-		});
-	}
-
-	for (size_t i = 0; i < thread_amount; i++){
-		thread[i].join();
-	}
-
-	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-	elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
-	return Test("WFCUnorderedMap", elapsed_time, operations, thread_amount);
-};
-
-
-template <typename ValueType, typename Distribution, typename ...DistributionArgs> 
-Test Test::Bhhbazinga(unsigned long operations, unsigned int thread_amount, 
-	unsigned long pre_population, double get_proportion, double set_proportion, 
-	double delete_proportion, DistributionArgs... distribution_args){
+	typedef wfc::unordered_map<uint32_t,value_t> map_t;
+	map_t *map = new map_t(node_array_size, thread_amount, thread_amount);
 	
-	unsigned long elapsed_time;
-	std::thread thread[thread_amount];
-	LockFreeHashTable<uint32_t,ValueType> map;
+	Test result = table_test<value_t, map_t, WFC, dist_t, dist_args_t...>(map, operations, thread_amount, pre_population, get_proportion, set_proportion, delete_proportion, distribution_args...);
+	delete map;
+	result.structure = "WFC_Laborde";
 
-	{//populacao inicial
-		for (uint32_t i = 0; i < pre_population; i++){
-			ValueType v;
-			map.Insert(i,v);
-		}
-	}
-	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-
-	for (size_t i = 0; i < thread_amount; i++){
-		thread[i] = std::thread([&](){
-			boost::random::mt19937 generator;
-			Distribution distribution(distribution_args...);
-			boost::random::uniform_real_distribution<double> uniform(0.0,1.0);
-
-			for (size_t i = 0; i < operations/thread_amount; i++){
-				double chance = uniform(generator);
-				uint32_t key = (uint32_t)distribution(generator);
-
-				if (chance <= get_proportion) {
-					// get
-					ValueType v;
-					map.Find(key, v);
-				} else if (chance <= (get_proportion + set_proportion)) {
-					// set
-					ValueType v;
-					map.Insert(key, v);
-				} else {
-					// delete
-					map.Delete(key);
-				}
-			}
-		});
-	}
-
-	for (size_t i = 0; i < thread_amount; i++){
-		thread[i].join();
-	}
-
-	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-	elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
-	return Test("Bhhbazinga", elapsed_time, operations, thread_amount);
+	return result;
 };
 
-template <typename ValueType, typename GC, size_t head_bits, size_t array_bits, typename Distribution, typename ...DistributionArgs> 
+
+template <typename value_t, typename gc_t, size_t head_bits, size_t array_bits, typename dist_t, typename ...dist_args_t> 
 Test Test::LibCDSFeldman(unsigned long operations, unsigned int thread_amount, 
 	unsigned long pre_population, double get_proportion, double set_proportion, 
-	double delete_proportion, DistributionArgs... distribution_args){
+	double delete_proportion, dist_args_t... distribution_args){
 	
 	unsigned long elapsed_time;
 	
 	std::thread thread[thread_amount];
+	Test result;
     cds::Initialize();
     {
-        GC gc;
+        gc_t gc;
         cds::threading::Manager::attachThread();
-        cds::container::FeldmanHashMap<GC, uint32_t, ValueType> map(head_bits,array_bits);
-		typedef typename cds::container::FeldmanHashMap<GC, uint32_t, ValueType>::guarded_ptr GuardedPointer;
 
-		{//populacao inicial
-			for (uint32_t i = 0; i < pre_population; i++){
-				ValueType v;
-				map.insert(i,v);
-			}
-		}
-		
-		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-		
-		for (size_t i = 0; i < thread_amount; i++){
-			thread[i] = std::thread([&](){
-		
-				boost::random::mt19937 generator;
-				Distribution distribution(distribution_args...);
-				boost::random::uniform_real_distribution<double> uniform(0.0,1.0);
+        typedef cds::container::FeldmanHashMap<gc_t, uint32_t, value_t> map_t;
+		map_t *map = new map_t(head_bits,array_bits);
 
-				cds::threading::Manager::attachThread();
+		result = table_test<value_t, map_t, LIBCDS, dist_t, dist_args_t...>(map, operations, thread_amount, pre_population, get_proportion, set_proportion, delete_proportion, distribution_args...);
+		delete map;
 
-				for (size_t i = 0; i < operations/thread_amount; i++){
-					double chance = uniform(generator);
-					uint32_t key = (uint32_t)distribution(generator);
-
-					if (chance <= get_proportion) {
-						// get
-						GuardedPointer gp = GuardedPointer( map.get(key));
-					} else if (chance <= (get_proportion + set_proportion)) {
-						// set
-						ValueType v;
-						map.insert(key,v);
-					} else {
-						// delete
-						map.erase(key);
-					}
-				}
-
-				cds::threading::Manager::detachThread();
-			});
-		}
-
-		for (size_t i = 0; i < thread_amount; i++){
-			thread[i].join();
-		}
-
-		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-		elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
 		
     }    
     cds::Terminate();
-	
-	return Test("LibCDSFeldman", elapsed_time, operations, thread_amount);
+	result.structure = "LibCDS_Feldman";
+	return result;
 
 };
 
-template <typename ValueType, typename GC, size_t MaxItemCount, size_t LoadFactor, typename Distribution, typename ...DistributionArgs> 
+template <typename value_t, typename gc_t, size_t MaxItemCount, size_t LoadFactor, typename dist_t, typename ...dist_args_t> 
 Test Test::LibCDSMichael(unsigned long operations, unsigned int thread_amount, 
 	unsigned long pre_population, double get_proportion, double set_proportion, 
-	double delete_proportion, DistributionArgs... distribution_args){
+	double delete_proportion, dist_args_t... distribution_args){
 	
 	unsigned long elapsed_time;
 	
 	std::thread thread[thread_amount];
+	Test result;
     cds::Initialize();
     {
-        GC gc;
+        gc_t gc;
         cds::threading::Manager::attachThread();
 	
-		cds::container::MichaelHashMap<GC, cds::container::MichaelKVList<GC, uint32_t, ValueType>> map(MaxItemCount, LoadFactor);
-		typedef typename cds::container::MichaelHashMap<GC, cds::container::MichaelKVList<GC, uint32_t, ValueType>>::guarded_ptr GuardedPointer;
+		typedef cds::container::MichaelHashMap<gc_t, cds::container::MichaelKVList<gc_t, uint32_t, value_t>> map_t;
+		map_t *map = new map_t(MaxItemCount, LoadFactor);
+		result = table_test<value_t, map_t, LIBCDS, dist_t, dist_args_t...>(map, operations, thread_amount, pre_population, get_proportion, set_proportion, delete_proportion, distribution_args...);
+		delete map;
 
-		{//populacao inicial
-			for (uint32_t i = 0; i < pre_population; i++){
-				ValueType v;
-				map.insert(i,v);
-			}
-		}
-		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-
-		for (size_t i = 0; i < thread_amount; i++){
-			thread[i] = std::thread([&](){
-		
-				boost::random::mt19937 generator;
-				Distribution distribution(distribution_args...);
-				boost::random::uniform_real_distribution<double> uniform(0.0,1.0);
-
-				cds::threading::Manager::attachThread();
-
-				for (size_t i = 0; i < operations/thread_amount; i++){
-					double chance = uniform(generator);
-					uint32_t key = (uint32_t)distribution(generator);
-
-					if (chance <= get_proportion) {
-						// get
-						GuardedPointer gp = GuardedPointer( map.get(key));
-					} else if (chance <= (get_proportion + set_proportion)) {
-						// set
-						ValueType v;
-						map.insert(key,v);
-					} else {
-						// delete
-						map.erase(key);
-					}
-				}
-
-				cds::threading::Manager::detachThread();
-			});
-		}
-
-		for (size_t i = 0; i < thread_amount; i++){
-			thread[i].join();
-		}
-
-		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-		elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
 		
     }    
     cds::Terminate();
+	result.structure = "LibCDS_Michael";
+	return result;
+
+};
+
+template <typename value_t, typename gc_t, size_t MaxItemCount, size_t LoadFactor, typename dist_t, typename ...dist_args_t> 
+Test Test::LibCDSSplitOrdered(unsigned long operations, unsigned int thread_amount, 
+	unsigned long pre_population, double get_proportion, double set_proportion, 
+	double delete_proportion, dist_args_t... distribution_args){
 	
-	return Test("LibCDSMichael", elapsed_time, operations, thread_amount);
+	unsigned long elapsed_time;
+	
+	std::thread thread[thread_amount];
+	Test result;
+    cds::Initialize();
+    {
+        gc_t gc;
+        cds::threading::Manager::attachThread();
+		
+		typedef cds::container::SplitListMap<
+			gc_t,
+			uint32_t,
+			value_t,
+			cds::container::split_list::make_traits<      // metafunction to build split-list traits
+				cds::container::split_list::ordered_list<cds::container::michael_list_tag>,
+				cds::container::opt::hash< std::hash<uint32_t> >,
+				cds::container::split_list::ordered_list_traits<    // ordered list traits desired
+					cds::container::michael_list::make_traits<    // metafunction to build lazy list traits
+						cds::container::opt::less< std::less<uint32_t> >         // less-based compare functor
+					>::type
+				>
+			>::type
+		>  map_t;
+		map_t *map = new map_t(MaxItemCount, LoadFactor);
+		result = table_test<value_t, map_t, LIBCDS, dist_t, dist_args_t...>(map, operations, thread_amount, pre_population, get_proportion, set_proportion, delete_proportion, distribution_args...);
+		delete map;
+
+		
+    }    
+    cds::Terminate();
+	result.structure = "LibCDS_SplitOrdered";
+	return result;
 
 };

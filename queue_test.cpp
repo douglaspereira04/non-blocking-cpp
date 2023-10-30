@@ -145,7 +145,7 @@ std::chrono::steady_clock::time_point begin;
 	
 		for (uint32_t i = 0; i < pre_population; i++){
 			ValueType v;
-			if constexpr(L == OTHER | L == LIBCDS | L == STL){
+			if constexpr(L == OTHER || L == LIBCDS || L == STL){
 				queue.push(v);
 			}
 			sem_post(&sem);
@@ -163,7 +163,7 @@ std::chrono::steady_clock::time_point begin;
 
 			ValueType v;
 
-			if constexpr(L == OTHER | L == LIBCDS | L == BOOST){
+			if constexpr(L == OTHER || L == LIBCDS || L == BOOST){
 				queue.push(v);
 			} else if constexpr(L == STL){
 				mtx.lock();
@@ -239,7 +239,7 @@ unsigned long pre_population){
 	
 		for (uint32_t i = 0; i < pre_population; i++){
 			ValueType v;
-			if constexpr(L == OTHER | L == LIBCDS | L == STL){
+			if constexpr(L == OTHER || L == LIBCDS || L == STL){
 				queue.push(v);
 			}
 		}
