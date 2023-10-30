@@ -34,7 +34,6 @@
 CMakeCache.txt
 Makefile
 CMakeFiles
-*.csv
 .vscode
 cmake_install.cmake
 main
