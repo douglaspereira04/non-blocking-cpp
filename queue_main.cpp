@@ -16,6 +16,12 @@
 #include <cds/gc/hp.h>
 #include <cds/gc/dhp.h>
 
+#ifdef BIG
+typedef std::array<uint32_t, 1024> value_t;
+#else
+typedef uint32_t value_t;
+#endif
+
 void print_test(Test test, std::string text){
 
     std::cout << test.Structure() << text <<","
@@ -36,155 +42,67 @@ void test(
     switch (data_structure)
     {
     case 1:
-        test =  Test::STLQueue<uint32_t>(operations, thread_amount, pre_population);
+        test =  Test::STLQueue<value_t>(operations, thread_amount, pre_population);
         print_test(test, "");
         break;
     case 2:
-        test =  Test::NikolaevQueue<uint32_t, 
+        test =  Test::NikolaevQueue<value_t, 
             xenium::reclamation::hazard_pointer<>>
             (operations, thread_amount, pre_population);
         print_test(test, "");
         break;
     case 3:
-        test =  Test::XeniumMSQueue<uint32_t, 
+        test =  Test::XeniumMSQueue<value_t, 
             xenium::reclamation::hazard_pointer<>>
             (operations, thread_amount, pre_population);
         print_test(test, "");
         break;
     case 4:
-        test =  Test::CDSMSQueue<uint32_t, 
+        test =  Test::CDSMSQueue<value_t, 
             cds::gc::HP>
             (operations, thread_amount, pre_population);
         print_test(test, "");
         break;
     case 5:
-        test =  Test::CDSBasketQueue<uint32_t, 
-            cds::gc::HP>
+        test =  Test::TBB<value_t>
             (operations, thread_amount, pre_population);
         print_test(test, "");
         break;
     case 6:
-        test =  Test::TBB<uint32_t>
+        test =  Test::BoostQueue<value_t>
             (operations, thread_amount, pre_population);
         print_test(test, "");
         break;
     case 7:
-        test =  Test::BoostQueue<uint32_t>
-            (operations, thread_amount, pre_population);
+        test =  Test::STLQueuePC<value_t>(operations, thread_amount, pre_population);
         print_test(test, "");
         break;
     case 8:
-        test =  Test::STLQueue<std::array<uint32_t,1024>>(operations, thread_amount, pre_population);
+        test =  Test::NikolaevPC<value_t, 
+            xenium::reclamation::hazard_pointer<>>
+            (operations, thread_amount, pre_population);
         print_test(test, "");
         break;
     case 9:
-        test =  Test::NikolaevQueue<std::array<uint32_t,1024>, 
+        test =  Test::XeniumMSPC<value_t, 
             xenium::reclamation::hazard_pointer<>>
             (operations, thread_amount, pre_population);
         print_test(test, "");
         break;
     case 10:
-        test =  Test::XeniumMSQueue<std::array<uint32_t,1024>, 
-            xenium::reclamation::hazard_pointer<>>
+        test =  Test::CDSMSPC<value_t, 
+            cds::gc::HP>
             (operations, thread_amount, pre_population);
         print_test(test, "");
         break;
     case 11:
-        test =  Test::CDSMSQueue<std::array<uint32_t,1024>, 
-            cds::gc::DHP>
+        test =  Test::TBBPC<value_t>
             (operations, thread_amount, pre_population);
         print_test(test, "");
         break;
     case 12:
-        test =  Test::CDSBasketQueue<std::array<uint32_t,1024>, 
-            cds::gc::DHP>
+        test =  Test::BoostPC<value_t>
             (operations, thread_amount, pre_population);
-        print_test(test, "");
-        break;
-    case 13:
-        test =  Test::TBB<std::array<uint32_t,1024>>
-            (operations, thread_amount, pre_population);
-        print_test(test, "");
-        break;
-    case 14:
-        test =  Test::BoostQueue<std::array<uint32_t,1024>>
-            (operations, thread_amount, pre_population);
-        print_test(test, "");
-        break;
-    case 15:
-        test =  Test::STLQueueSPSC<uint32_t>(operations, pre_population);
-        print_test(test, "");
-        break;
-    case 16:
-        test =  Test::NikolaevSPSC<uint32_t, 
-            xenium::reclamation::hazard_pointer<>>
-            (operations, pre_population);
-        print_test(test, "");
-        break;
-    case 17:
-        test =  Test::XeniumMSSPSC<uint32_t, 
-            xenium::reclamation::hazard_pointer<>>
-            (operations, pre_population);
-        print_test(test, "");
-        break;
-    case 18:
-        test =  Test::CDSMSSPSC<uint32_t, 
-            cds::gc::HP>
-            (operations, pre_population);
-        print_test(test, "");
-        break;
-    case 19:
-        test =  Test::CDSBasketSPSC<uint32_t, 
-            cds::gc::HP>
-            (operations, pre_population);
-        print_test(test, "");
-        break;
-    case 20:
-        test =  Test::TBBSPSC<uint32_t>
-            (operations, pre_population);
-        print_test(test, "");
-        break;
-    case 21:
-        test =  Test::BoostSPSC<uint32_t>
-            (operations, pre_population);
-        print_test(test, "");
-        break;
-    case 22:
-        test =  Test::STLQueueSPSC<std::array<uint32_t,1024>>(operations, pre_population);
-        print_test(test, "");
-        break;
-    case 23:
-        test =  Test::NikolaevSPSC<std::array<uint32_t,1024>, 
-            xenium::reclamation::hazard_pointer<>>
-            (operations, pre_population);
-        print_test(test, "");
-        break;
-    case 24:
-        test =  Test::XeniumMSSPSC<std::array<uint32_t,1024>, 
-            xenium::reclamation::hazard_pointer<>>
-            (operations, pre_population);
-        print_test(test, "");
-        break;
-    case 25:
-        test =  Test::CDSMSSPSC<std::array<uint32_t,1024>, 
-            cds::gc::HP>
-            (operations, pre_population);
-        print_test(test, "");
-        break;
-    case 26:
-        test =  Test::CDSBasketSPSC<std::array<uint32_t,1024>, 
-            cds::gc::HP>
-            (operations, pre_population);
-        print_test(test, "");
-        break;
-    case 27:
-        test =  Test::TBBSPSC<std::array<uint32_t,1024>>
-            (operations, pre_population);
-        print_test(test, "");
-        break;
-    case 28:
-        test =  Test::BoostSPSC<std::array<uint32_t,1024>>
-            (operations, pre_population);
         print_test(test, "");
         break;
     default:
