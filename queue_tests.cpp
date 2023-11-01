@@ -41,31 +41,31 @@ public:
 	
 template <typename ValueType> 
 	static Test STLQueue(unsigned long operations, unsigned int thread_amount, 
-	unsigned long pre_population);
+	unsigned long pre_population, double insert_proportion);
 
 template <typename ValueType> 
 	static Test BoostQueue(unsigned long operations, unsigned int thread_amount, 
-	unsigned long pre_population);
+	unsigned long pre_population, double insert_proportion);
 
 template <typename ValueType, typename Reclaimer> 
 	static Test XeniumMSQueue(unsigned long operations, unsigned int thread_amount, 
-	unsigned long pre_population);
+	unsigned long pre_population, double insert_proportion);
 
 template <typename ValueType, typename Reclaimer> 
 	static Test CDSMSQueue(unsigned long operations, unsigned int thread_amount, 
-	unsigned long pre_population);
+	unsigned long pre_population, double insert_proportion);
 
 template <typename ValueType, typename Reclaimer> 
 	static Test CDSBasketQueue(unsigned long operations, unsigned int thread_amount, 
-	unsigned long pre_population);
+	unsigned long pre_population, double insert_proportion);
 
 template <typename ValueType, typename Reclaimer> 
 	static Test NikolaevQueue(unsigned long operations, unsigned int thread_amount, 
-	unsigned long pre_population);
+	unsigned long pre_population, double insert_proportion);
 
 template <typename ValueType> 
 	static Test TBB(unsigned long operations, unsigned int thread_amount, 
-	unsigned long pre_population);
+	unsigned long pre_population, double insert_proportion);
 
 	std::string Structure(){
 		return this->structure;
@@ -98,12 +98,9 @@ Test::Test(std::string structure, unsigned long elapsed_time, unsigned long oper
 Test::~Test(){};
 
 
-std::chrono::microseconds min_loop = std::chrono::microseconds(1);
-int loops = 50;
-
 template <typename ValueType, typename Structure, Library L> 
 Test testQueue(unsigned long operations, unsigned int thread_amount, 
-unsigned long pre_population){
+unsigned long pre_population, double insert_proportion){
 
 	unsigned long elapsed_time;
 	std::chrono::steady_clock::time_point begin;
@@ -128,48 +125,48 @@ unsigned long pre_population){
 	for (size_t i = 0; i < thread_amount; i++){
 		thread[i] = std::thread([&](){
 
+			boost::random::mt19937 operation_generator;
+			boost::random::mt19937 work_generator;
+			boost::random::uniform_real_distribution<double> operation_rand(0.0,1.0);
+			boost::random::uniform_int_distribution<int> work_rand(0, 1000);
+
 			if constexpr(L == LIBCDS){
 				cds::threading::Manager::attachThread();
 			}
 
 			for (size_t i = 0; i < operations/thread_amount; i++){
+				double chance = operation_rand(operation_generator);
 
 				ValueType v;
-				if constexpr(L == OTHER){
-					queue.push(v);
-					for (size_t i = 0; i < loops; i++){}
+				if (chance <= insert_proportion) {
 
-					bool result = queue.try_pop(v);
-					for (size_t i = 0; i < loops; i++){}
-				} else if constexpr(L == STL){
-					mtx.lock();
-					queue.push(v);
-					mtx.unlock();
-					for (size_t i = 0; i < loops; i++){}
-					
-					mtx.lock();
-					v = queue.front();
-					if(!queue.empty()){
-						queue.pop();
+					if constexpr(L == OTHER || L == LIBCDS || L == BOOST){
+						queue.push(v);
+					} else if constexpr(L == STL){
+						mtx.lock();
+						queue.push(v);
+						mtx.unlock();
 					}
-					mtx.unlock();
-					for (size_t i = 0; i < loops; i++){}
 
-				} else if constexpr(L == LIBCDS){
-					queue.push(v);
-					for (size_t i = 0; i < loops; i++){}
+				} else {
+					if constexpr(L == OTHER){
+						bool result = queue.try_pop(v);
+					} else if constexpr(L == STL){
 
-					bool result = queue.pop(v);
-					for (size_t i = 0; i < loops; i++){}
-					
-				} else if constexpr(L == BOOST){
-					queue.push(v);
-					for (size_t i = 0; i < loops; i++){}
-
-					auto result = queue.try_pull(v);
-					for (size_t i = 0; i < loops; i++){}
+						mtx.lock();
+						v = queue.front();
+						if(!queue.empty()){
+							queue.pop();
+						}
+						mtx.unlock();
+					} else if constexpr(L == LIBCDS){
+						bool result = queue.pop(v);
+					} else if constexpr(L == BOOST){
+						auto result = queue.try_pull(v);
+					}
 				}
-
+				int loops = work_rand(work_generator);
+				for (size_t i = 0; i < loops; i++){}
 			}
 
 
@@ -190,16 +187,16 @@ unsigned long pre_population){
 
 template <typename ValueType, typename Reclaimer> 
 	Test Test::NikolaevQueue(unsigned long operations, unsigned int thread_amount, 
-	unsigned long pre_population){
-	Test test = testQueue<ValueType, xenium::nikolaev_queue<ValueType, xenium::policy::reclaimer<Reclaimer>,  xenium::policy::entries_per_node<512*32>>, OTHER>(operations, thread_amount, pre_population);
+	unsigned long pre_population, double insert_proportion){
+	Test test = testQueue<ValueType, xenium::nikolaev_queue<ValueType, xenium::policy::reclaimer<Reclaimer>,  xenium::policy::entries_per_node<512*32>>, OTHER>(operations, thread_amount, pre_population, insert_proportion);
 	test.structure = "LSCQ";
 	return test;
 };
 
 template <typename ValueType, typename Reclaimer> 
 	Test Test::XeniumMSQueue(unsigned long operations, unsigned int thread_amount, 
-	unsigned long pre_population){
-	Test test = testQueue<ValueType, xenium::michael_scott_queue<ValueType, xenium::policy::reclaimer<Reclaimer>>, OTHER>(operations, thread_amount, pre_population);
+	unsigned long pre_population, double insert_proportion){
+	Test test = testQueue<ValueType, xenium::michael_scott_queue<ValueType, xenium::policy::reclaimer<Reclaimer>>, OTHER>(operations, thread_amount, pre_population, insert_proportion);
 	test.structure = "XMSQ";
 	return test;
 };
@@ -212,13 +209,13 @@ struct MSTraits: public cds::container::msqueue::traits {
 
 template <typename ValueType, typename Reclaimer> 
 	Test Test::CDSMSQueue(unsigned long operations, unsigned int thread_amount, 
-	unsigned long pre_population){
+	unsigned long pre_population, double insert_proportion){
 	typedef cds::container::MSQueue<Reclaimer, ValueType, MSTraits > queue;
 	Reclaimer gc;
 	cds::Initialize();
 	cds::threading::Manager::attachThread();
 
-	Test test = testQueue<ValueType, queue, LIBCDS>(operations, thread_amount, pre_population);
+	Test test = testQueue<ValueType, queue, LIBCDS>(operations, thread_amount, pre_population, insert_proportion);
 
 	cds::Terminate();
 	test.structure = "CDSMSQ";
@@ -233,41 +230,41 @@ struct BasketTraits: public cds::container::basket_queue::traits {
 
 template <typename ValueType, typename Reclaimer> 
 	Test Test::CDSBasketQueue(unsigned long operations, unsigned int thread_amount, 
-	unsigned long pre_population){
+	unsigned long pre_population, double insert_proportion){
 	typedef cds::container::BasketQueue<Reclaimer, ValueType, BasketTraits > queue;
 	Reclaimer gc;
 	cds::Initialize();
 	cds::threading::Manager::attachThread();
 
-	Test test = testQueue<ValueType, queue, LIBCDS>(operations, thread_amount, pre_population);
+	Test test = testQueue<ValueType, queue, LIBCDS>(operations, thread_amount, pre_population, insert_proportion);
 
 	cds::Terminate();
-	test.structure = "BsktQ";
+	test.structure = "Bskt";
 	return test;
 };
 
 template <typename ValueType> 
 	Test Test::TBB(unsigned long operations, unsigned int thread_amount, 
-	unsigned long pre_population){
+	unsigned long pre_population, double insert_proportion){
 
-	Test test = testQueue<ValueType, tbb::concurrent_queue<ValueType>, OTHER>(operations, thread_amount, pre_population);
-	test.structure = "TBBQ";
+	Test test = testQueue<ValueType, tbb::concurrent_queue<ValueType>, OTHER>(operations, thread_amount, pre_population, insert_proportion);
+	test.structure = "TBB";
 	return test;
 };
 
 
 template <typename ValueType> 
 	Test Test::STLQueue(unsigned long operations, unsigned int thread_amount, 
-		unsigned long pre_population){
-	Test test = testQueue<ValueType, std::queue<ValueType>, STL>(operations, thread_amount, pre_population);
-	test.structure = "STLQ";
+		unsigned long pre_population, double insert_proportion){
+	Test test = testQueue<ValueType, std::queue<ValueType>, STL>(operations, thread_amount, pre_population, insert_proportion);
+	test.structure = "STL";
 	return test;
 }
 
 template <typename ValueType> 
 	Test Test::BoostQueue(unsigned long operations, unsigned int thread_amount, 
-		unsigned long pre_population){
-	Test test = testQueue<ValueType, boost::sync_queue<ValueType>, BOOST>(operations, thread_amount, pre_population);
-	test.structure = "BoostQ";
+		unsigned long pre_population, double insert_proportion){
+	Test test = testQueue<ValueType, boost::sync_queue<ValueType>, BOOST>(operations, thread_amount, pre_population, insert_proportion);
+	test.structure = "Boost";
 	return test;
 }

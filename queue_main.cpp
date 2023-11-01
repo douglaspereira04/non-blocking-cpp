@@ -34,7 +34,8 @@ void test(
     int thread_amount, 
     long operations,
     long pre_population,
-    long data_structure
+    long data_structure,
+    double insert_proportion
     ){
     
     Test test;
@@ -42,35 +43,35 @@ void test(
     switch (data_structure)
     {
     case 1:
-        test =  Test::STLQueue<value_t>(operations, thread_amount, pre_population);
+        test =  Test::STLQueue<value_t>(operations, thread_amount, pre_population, insert_proportion);
         print_test(test, "");
         break;
     case 2:
         test =  Test::NikolaevQueue<value_t, 
             xenium::reclamation::hazard_pointer<>>
-            (operations, thread_amount, pre_population);
+            (operations, thread_amount, pre_population, insert_proportion);
         print_test(test, "");
         break;
     case 3:
         test =  Test::XeniumMSQueue<value_t, 
             xenium::reclamation::hazard_pointer<>>
-            (operations, thread_amount, pre_population);
+            (operations, thread_amount, pre_population, insert_proportion);
         print_test(test, "");
         break;
     case 4:
         test =  Test::CDSMSQueue<value_t, 
             cds::gc::HP>
-            (operations, thread_amount, pre_population);
+            (operations, thread_amount, pre_population, insert_proportion);
         print_test(test, "");
         break;
     case 5:
         test =  Test::TBB<value_t>
-            (operations, thread_amount, pre_population);
+            (operations, thread_amount, pre_population, insert_proportion);
         print_test(test, "");
         break;
     case 6:
         test =  Test::BoostQueue<value_t>
-            (operations, thread_amount, pre_population);
+            (operations, thread_amount, pre_population, insert_proportion);
         print_test(test, "");
         break;
     default:
@@ -82,6 +83,7 @@ const size_t THREAD_AMOUNT = 1;
 const size_t OPERATIONS = 2;
 const size_t PRE_POPULATION = 3;
 const size_t DATA_STRUCTURE = 4;
+const size_t INSERT_PROPORTION = 5;
 
 int main(int argc, char *argv[]){
     
@@ -89,6 +91,7 @@ int main(int argc, char *argv[]){
         atoi(argv[THREAD_AMOUNT]),
         atol(argv[OPERATIONS]), 
         atol(argv[PRE_POPULATION]), 
-        atol(argv[DATA_STRUCTURE])
+        atol(argv[DATA_STRUCTURE]), 
+        atof(argv[INSERT_PROPORTION])
     );
 }
