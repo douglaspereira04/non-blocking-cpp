@@ -34,13 +34,6 @@ std::vector<std::string> scalability = {
     "scalability_filled_small.csv"
 };
 
-std::vector<std::string> pc = {
-    "pc_empty_big.csv",
-    "pc_empty_small.csv",
-    "pc_filled_big.csv",
-    "pc_filled_small.csv"
-};
-
 
 void plot_files(std::vector<std::string> files, std::string image_name, std::string folder, std::vector<std::string> xticklabels){
     std::unordered_map<std::string, std::vector<std::vector<double>>> map;
@@ -67,17 +60,14 @@ void plot_files(std::vector<std::string> files, std::string image_name, std::str
 
 
             if(map.find(name) == map.end()){
-                std::vector<std::vector<double>> v(5);
+                std::vector<std::vector<double>> v(6);
                 map.emplace(name, v);
 
-                std::vector<double> avgv(5,0.0);
+                std::vector<double> avgv(6,0.0);
                 avg_map.emplace(name, avgv);
             }
 
-            int pos = ((int)log2(threads))-1;
-            if(pos == -1){
-                pos = 0;
-            }
+            int pos = ((int)log2(threads));
 
             map[name][pos].push_back(elapsed_time);
         }
@@ -96,7 +86,7 @@ void plot_files(std::vector<std::string> files, std::string image_name, std::str
     }
     std::vector<std::string> legend_vector;
 
-    std::vector<double> x = {1,2,3,4,5};
+    std::vector<double> x = {1,2,3,4,5,6};
 
     std::string line_spec[] = {"-o", "-x", "-+", "-v", "-^", "-*", "-s", "-d"};
     int i = 0;
@@ -110,9 +100,9 @@ void plot_files(std::vector<std::string> files, std::string image_name, std::str
         legend_vector.push_back(name);
     }
 
-    matplot::xticks({0,1,2,3,4,5,6});
+    matplot::xticks({0,1,2,3,4,5,6,7});
     matplot::xticklabels(xticklabels);
-    matplot::xrange({0.9,5.1});
+    matplot::xrange({0.9,6.1});
     
     matplot::grid(matplot::on);
     matplot::xlabel("Threads");
@@ -134,11 +124,7 @@ void plot_file(std::string file, std::string folder, std::vector<std::string> xt
 void plot_all(std::string folder){
     for (auto &&file : scalability)
     {
-        plot_file(file, folder, {" ","1","4","8", "16", "32" " "});
-    }
-    for (auto &&file : pc)
-    {
-        plot_file(file, folder, {" ","2","4","8", "16", "32" " "});
+        plot_file(file, folder, {" ","1","2","4", "8", "16", "32" " "});
     }
 
 }

@@ -73,38 +73,6 @@ void test(
             (operations, thread_amount, pre_population);
         print_test(test, "");
         break;
-    case 7:
-        test =  Test::STLQueuePC<value_t>(operations, thread_amount, pre_population);
-        print_test(test, "");
-        break;
-    case 8:
-        test =  Test::NikolaevPC<value_t, 
-            xenium::reclamation::hazard_pointer<>>
-            (operations, thread_amount, pre_population);
-        print_test(test, "");
-        break;
-    case 9:
-        test =  Test::XeniumMSPC<value_t, 
-            xenium::reclamation::hazard_pointer<>>
-            (operations, thread_amount, pre_population);
-        print_test(test, "");
-        break;
-    case 10:
-        test =  Test::CDSMSPC<value_t, 
-            cds::gc::HP>
-            (operations, thread_amount, pre_population);
-        print_test(test, "");
-        break;
-    case 11:
-        test =  Test::TBBPC<value_t>
-            (operations, thread_amount, pre_population);
-        print_test(test, "");
-        break;
-    case 12:
-        test =  Test::BoostPC<value_t>
-            (operations, thread_amount, pre_population);
-        print_test(test, "");
-        break;
     default:
         break;
     }
