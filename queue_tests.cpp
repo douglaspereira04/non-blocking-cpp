@@ -128,7 +128,7 @@ unsigned long pre_population, double insert_proportion){
 			boost::random::mt19937 operation_generator;
 			boost::random::mt19937 work_generator;
 			boost::random::uniform_real_distribution<double> operation_rand(0.0,1.0);
-			boost::random::uniform_int_distribution<int> work_rand(0, 1000);
+			boost::random::uniform_int_distribution<int> work_rand(0, 100);
 
 			if constexpr(L == LIBCDS){
 				cds::threading::Manager::attachThread();

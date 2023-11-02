@@ -124,7 +124,7 @@ void plot_file(std::string file, std::string folder, std::vector<std::string> xt
 void plot_all(std::string folder){
     for (auto &&file : scalability)
     {
-        plot_file(file, folder, {" ","1","2","4", "8", "16", "32" " "});
+        plot_file(file, folder, {" ","1", "2", "4", "8", "16", "32" " "});
     }
 
 }

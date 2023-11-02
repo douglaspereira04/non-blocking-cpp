@@ -12,7 +12,7 @@ scalability_threads=(1 2 4 8 16 32)
 operations=10000000
 insert_proportion=0.5
 
-reps=20
+reps=10
 
 make clean
 cmake . -DBIG_VALUES=OFF
