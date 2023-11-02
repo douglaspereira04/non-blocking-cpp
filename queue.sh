@@ -9,10 +9,10 @@ echo "Structure,Threads,Elapsed Time" > results/queue/scalability_filled_big.csv
 scalability_tests=(1 2 3 4 5 6)
 scalability_threads=(1 2 4 8 16 32)
 
-operations=10
+operations=10000000
 insert_proportion=0.5
 
-reps=1
+reps=5
 
 make clean
 cmake . -DBIG_VALUES=OFF
