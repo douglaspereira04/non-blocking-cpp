@@ -9,10 +9,10 @@ echo "Structure,Threads,Elapsed Time" > results/queue/scalability_filled_big.csv
 scalability_tests=(1 2 3 4 5 6)
 scalability_threads=(1 2 4 8 16 32)
 
-operations=10000000
+operations=10
 insert_proportion=0.5
 
-reps=10
+reps=1
 
 make clean
 cmake . -DBIG_VALUES=OFF
@@ -28,7 +28,7 @@ for k in $(seq $reps); do
             filename="scalability_empty_small.csv"
             for i in "${scalability_tests[@]}"; do 
                 echo "${i}"
-                output=$(./queue $j $operations $operations $i $insert_proportion)
+                output=$(./q $j $operations $operations $i $insert_proportion)
                 echo $output
                 echo $output >> results/queue/$filename
             done
@@ -38,7 +38,7 @@ for k in $(seq $reps); do
             filename="scalability_filled_small.csv"
             for i in "${scalability_tests[@]}"; do 
                 echo "${i}"
-                output=$(./queue $j $operations $operations $i $insert_proportion)
+                output=$(./q $j $operations $operations $i $insert_proportion)
                 echo $output
                 echo $output >> results/queue/$filename
             done
@@ -60,7 +60,7 @@ for k in $(seq $reps); do
             filename="scalability_empty_big.csv"
             for i in "${scalability_tests[@]}"; do 
                 echo "${i}"
-                output=$(./queue $j $operations $operations $i $insert_proportion)
+                output=$(./q $j $operations $operations $i $insert_proportion)
                 echo $output
                 echo $output >> results/queue/$filename
             done
@@ -70,7 +70,7 @@ for k in $(seq $reps); do
             filename="scalability_filled_big.csv"
             for i in "${scalability_tests[@]}"; do 
                 echo "${i}"
-                output=$(./queue $j $operations $operations $i $insert_proportion)
+                output=$(./q $j $operations $operations $i $insert_proportion)
                 echo $output
                 echo $output >> results/queue/$filename
             done

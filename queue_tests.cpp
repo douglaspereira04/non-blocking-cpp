@@ -128,7 +128,7 @@ unsigned long pre_population, double insert_proportion){
 			boost::random::mt19937 operation_generator;
 			boost::random::mt19937 work_generator;
 			boost::random::uniform_real_distribution<double> operation_rand(0.0,1.0);
-			boost::random::uniform_int_distribution<int> work_rand(0, 100);
+			boost::random::uniform_int_distribution<int> work_rand(0, 1000);
 
 			if constexpr(L == LIBCDS){
 				cds::threading::Manager::attachThread();
@@ -150,7 +150,7 @@ unsigned long pre_population, double insert_proportion){
 
 				} else {
 					if constexpr(L == OTHER){
-						bool result = queue.try_pop(v);
+						std::ignore = queue.try_pop(v);
 					} else if constexpr(L == STL){
 
 						mtx.lock();
@@ -160,9 +160,9 @@ unsigned long pre_population, double insert_proportion){
 						}
 						mtx.unlock();
 					} else if constexpr(L == LIBCDS){
-						bool result = queue.pop(v);
+						queue.pop(v);
 					} else if constexpr(L == BOOST){
-						auto result = queue.try_pull(v);
+						queue.try_pull(v);
 					}
 				}
 				int loops = work_rand(work_generator);
