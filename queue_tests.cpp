@@ -114,7 +114,7 @@ unsigned long pre_population, double insert_proportion){
 	
 		for (uint32_t i = 0; i < pre_population; i++){
 			ValueType v;
-			if constexpr(L == OTHER || L == LIBCDS || L == STL){
+			if constexpr(L == OTHER || L == LIBCDS || L == STL || L == BOOST){
 				queue.push(v);
 			}
 		}
