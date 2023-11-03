@@ -47,6 +47,9 @@ void plot_files(std::vector<std::string> files, std::string image_name, std::str
         getline( infile, line );
         while(getline( infile, line )){
             std::string temp;
+            if(line.empty()){
+                break;
+            }
             std::istringstream  ss(line);
 
             getline(ss, temp, ','); 
