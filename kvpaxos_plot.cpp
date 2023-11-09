@@ -25,118 +25,53 @@ std::vector<std::string> sizes = {
     "10000000"
 };
 
-std::vector<std::pair<std::string, std::string>> best_old_free = {
-    {"Old","results/blocking/output/ycsb_d/METIS/1000000_10000000_old_8_1.csv"},
-    {"Free","results/blocking/output/ycsb_d/METIS/1000000_100000_free_8_1.csv"}
-};
-
-std::vector<std::pair<std::string, std::string>> old_ycsb_d = {
-    {"Old","results/blocking/output/ycsb_d/METIS/1000000_100000_old_8_1.csv"},
-    {"Old","results/blocking/output/ycsb_d/METIS/1000000_500000_old_8_1.csv"},
-    {"Old","results/blocking/output/ycsb_d/METIS/1000000_1000000_old_8_1.csv"},
-    {"Old","results/blocking/output/ycsb_d/METIS/1000000_5000000_old_8_1.csv"},
-    {"Old","results/blocking/output/ycsb_d/METIS/1000000_10000000_old_8_1.csv"}
-};
-
-std::vector<std::pair<std::string, std::string>> free_ycsb_d = {
-    {"Free","results/blocking/output/ycsb_d/METIS/1000000_100000_free_8_1.csv"},
-    {"Free","results/blocking/output/ycsb_d/METIS/1000000_500000_free_8_1.csv"},
-    {"Free","results/blocking/output/ycsb_d/METIS/1000000_1000000_free_8_1.csv"},
-    {"Free","results/blocking/output/ycsb_d/METIS/1000000_5000000_free_8_1.csv"},
-    {"Free","results/blocking/output/ycsb_d/METIS/1000000_10000000_free_8_1.csv"}
-};
-
-std::vector<std::pair<std::string, std::string>> blocking_free_ycsb_d = {
-    {"Blocking","results/blocking/output/ycsb_d/METIS/1000000_100000_free_8_1.csv"},
-    {"Blocking","results/blocking/output/ycsb_d/METIS/1000000_500000_free_8_1.csv"},
-    {"Blocking","results/blocking/output/ycsb_d/METIS/1000000_1000000_free_8_1.csv"},
-    {"Blocking","results/blocking/output/ycsb_d/METIS/1000000_5000000_free_8_1.csv"},
-    {"Blocking","results/blocking/output/ycsb_d/METIS/1000000_10000000_free_8_1.csv"}
-};
-
-std::vector<std::pair<std::string, std::string>> nonblocking_free_ycsb_d = {
-    {"NonBlocking","results/nonblocking/output/ycsb_d/METIS/1000000_100000_free_8_1.csv"},
-    {"NonBlocking","results/nonblocking/output/ycsb_d/METIS/1000000_500000_free_8_1.csv"},
-    {"NonBlocking","results/nonblocking/output/ycsb_d/METIS/1000000_1000000_free_8_1.csv"},
-    {"NonBlocking","results/nonblocking/output/ycsb_d/METIS/1000000_5000000_free_8_1.csv"},
-    {"NonBlocking","results/nonblocking/output/ycsb_d/METIS/1000000_10000000_free_8_1.csv"}
-};
-
-
-
-std::vector<std::pair<std::string, std::string>> old_ycsb_e = {
-    {"Old","results/blocking/output/ycsb_e/METIS/1000000_100000_old_8_1.csv"},
-    {"Old","results/blocking/output/ycsb_e/METIS/1000000_500000_old_8_1.csv"},
-    {"Old","results/blocking/output/ycsb_e/METIS/1000000_1000000_old_8_1.csv"},
-};
-
-std::vector<std::pair<std::string, std::string>> free_ycsb_e = {
-    {"Free","results/blocking/output/ycsb_e/METIS/1000000_100000_free_8_1.csv"},
-    {"Free","results/blocking/output/ycsb_e/METIS/1000000_500000_free_8_1.csv"},
-    {"Free","results/blocking/output/ycsb_e/METIS/1000000_1000000_free_8_1.csv"},
-};
-
-std::vector<std::pair<std::string, std::string>> blocking_free_ycsb_e = {
-    {"Blocking","results/blocking/output/ycsb_e/METIS/1000000_100000_free_8_1.csv"},
-    {"Blocking","results/blocking/output/ycsb_e/METIS/1000000_500000_free_8_1.csv"},
-    {"Blocking","results/blocking/output/ycsb_e/METIS/1000000_1000000_free_8_1.csv"},
-};
-
-std::vector<std::pair<std::string, std::string>> nonblocking_free_ycsb_e = {
-    {"NonBlocking","results/nonblocking/output/ycsb_e/METIS/1000000_100000_free_8_1.csv"},
-    {"NonBlocking","results/nonblocking/output/ycsb_e/METIS/1000000_500000_free_8_1.csv"},
-    {"NonBlocking","results/nonblocking/output/ycsb_e/METIS/1000000_1000000_free_8_1.csv"},
-};
-
-
-
 
 
 std::vector<std::pair<std::string, std::string>> original_ycsb_d = {
-    {"Original","results/blocking/output/ycsb_d/METIS/1000000_100000_old_8_1.csv"},
-    {"Original","results/blocking/output/ycsb_d/METIS/1000000_500000_old_8_1.csv"},
-    {"Original","results/blocking/output/ycsb_d/METIS/1000000_1000000_old_8_1.csv"},
-    {"Original","results/blocking/output/ycsb_d/METIS/1000000_5000000_old_8_1.csv"},
-    {"Original","results/blocking/output/ycsb_d/METIS/1000000_10000000_old_8_1.csv"},
+    {"KVStore","results/blocking/output/ycsb_d/METIS/1000000_100000_old_8_1.csv"},
+    {"KVStore","results/blocking/output/ycsb_d/METIS/1000000_500000_old_8_1.csv"},
+    {"KVStore","results/blocking/output/ycsb_d/METIS/1000000_1000000_old_8_1.csv"},
+    {"KVStore","results/blocking/output/ycsb_d/METIS/1000000_5000000_old_8_1.csv"},
+    {"KVStore","results/blocking/output/ycsb_d/METIS/1000000_10000000_old_8_1.csv"},
 };
 
 std::vector<std::pair<std::string, std::string>> lc_ycsb_d = {
-    {"Novo","results/blocking/output/ycsb_d/METIS/1000000_100000_free_8_1.csv"},
-    {"Novo","results/blocking/output/ycsb_d/METIS/1000000_500000_free_8_1.csv"},
-    {"Novo","results/blocking/output/ycsb_d/METIS/1000000_1000000_free_8_1.csv"},
-    {"Novo","results/blocking/output/ycsb_d/METIS/1000000_5000000_free_8_1.csv"},
-    {"Novo","results/blocking/output/ycsb_d/METIS/1000000_10000000_free_8_1.csv"},
+    {"KVStore ||","results/blocking/output/ycsb_d/METIS/1000000_100000_free_8_1.csv"},
+    {"KVStore ||","results/blocking/output/ycsb_d/METIS/1000000_500000_free_8_1.csv"},
+    {"KVStore ||","results/blocking/output/ycsb_d/METIS/1000000_1000000_free_8_1.csv"},
+    {"KVStore ||","results/blocking/output/ycsb_d/METIS/1000000_5000000_free_8_1.csv"},
+    {"KVStore ||","results/blocking/output/ycsb_d/METIS/1000000_10000000_free_8_1.csv"},
 };
 std::vector<std::pair<std::string, std::string>> lc_nb_ycsb_d = {
-    {"Novo NB","results/nonblocking/output/ycsb_d/METIS/1000000_100000_free_8_1.csv"},
-    {"Novo NB","results/nonblocking/output/ycsb_d/METIS/1000000_500000_free_8_1.csv"},
-    {"Novo NB","results/nonblocking/output/ycsb_d/METIS/1000000_1000000_free_8_1.csv"},
-    {"Novo NB","results/nonblocking/output/ycsb_d/METIS/1000000_5000000_free_8_1.csv"},
-    {"Novo NB","results/nonblocking/output/ycsb_d/METIS/1000000_10000000_free_8_1.csv"},
+    {"KVStore || NB","results/nonblocking/output/ycsb_d/METIS/1000000_100000_free_8_1.csv"},
+    {"KVStore || NB","results/nonblocking/output/ycsb_d/METIS/1000000_500000_free_8_1.csv"},
+    {"KVStore || NB","results/nonblocking/output/ycsb_d/METIS/1000000_1000000_free_8_1.csv"},
+    {"KVStore || NB","results/nonblocking/output/ycsb_d/METIS/1000000_5000000_free_8_1.csv"},
+    {"KVStore || NB","results/nonblocking/output/ycsb_d/METIS/1000000_10000000_free_8_1.csv"},
 };
 
 std::vector<std::pair<std::string, std::string>> original_ycsb_e = {
-    {"Original","results/blocking/output/ycsb_e/METIS/1000000_100000_old_8_1.csv"},
-    {"Original","results/blocking/output/ycsb_e/METIS/1000000_500000_old_8_1.csv"},
-    {"Original","results/blocking/output/ycsb_e/METIS/1000000_1000000_old_8_1.csv"},
+    {"KVStore","results/blocking/output/ycsb_e/METIS/1000000_100000_old_8_1.csv"},
+    {"KVStore","results/blocking/output/ycsb_e/METIS/1000000_500000_old_8_1.csv"},
+    {"KVStore","results/blocking/output/ycsb_e/METIS/1000000_1000000_old_8_1.csv"},
 };
 
 std::vector<std::pair<std::string, std::string>> lc_ycsb_e = {
-    {"Novo","results/blocking/output/ycsb_e/METIS/1000000_100000_free_8_1.csv"},
-    {"Novo","results/blocking/output/ycsb_e/METIS/1000000_500000_free_8_1.csv"},
-    {"Novo","results/blocking/output/ycsb_e/METIS/1000000_1000000_free_8_1.csv"},
+    {"KVStore ||","results/blocking/output/ycsb_e/METIS/1000000_100000_free_8_1.csv"},
+    {"KVStore ||","results/blocking/output/ycsb_e/METIS/1000000_500000_free_8_1.csv"},
+    {"KVStore ||","results/blocking/output/ycsb_e/METIS/1000000_1000000_free_8_1.csv"},
 };
 
 std::vector<std::pair<std::string, std::string>> lc_nb_ycsb_e = {
-    {"Novo NB","results/nonblocking/output/ycsb_e/METIS/1000000_100000_free_8_1.csv"},
-    {"Novo NB","results/nonblocking/output/ycsb_e/METIS/1000000_500000_free_8_1.csv"},
-    {"Novo NB","results/nonblocking/output/ycsb_e/METIS/1000000_1000000_free_8_1.csv"},
+    {"KVStore || NB","results/nonblocking/output/ycsb_e/METIS/1000000_100000_free_8_1.csv"},
+    {"KVStore || NB","results/nonblocking/output/ycsb_e/METIS/1000000_500000_free_8_1.csv"},
+    {"KVStore || NB","results/nonblocking/output/ycsb_e/METIS/1000000_1000000_free_8_1.csv"},
 };
 
 std::vector<std::pair<std::string, std::string>> best_d = {
-    {"Original, {/:Italic /Symbol d}{/:Italic p} = 10.000.000","results/blocking/output/ycsb_d/METIS/1000000_10000000_old_8_1.csv"},
-    {"Novo, {/:Italic /Symbol d}{/:Italic p} = 100.000","results/blocking/output/ycsb_d/METIS/1000000_100000_free_8_1.csv"},
-    {"Novo NB, {/:Italic /Symbol d}{/:Italic p} = 100.000","results/nonblocking/output/ycsb_d/METIS/1000000_100000_free_8_1.csv"},
+    {"KVStore, {/:Italic /Symbol d}{/:Italic p} = 10.000.000","results/blocking/output/ycsb_d/METIS/1000000_10000000_old_8_1.csv"},
+    {"KVStore ||, {/:Italic /Symbol d}{/:Italic p} = 100.000","results/blocking/output/ycsb_d/METIS/1000000_100000_free_8_1.csv"},
+    {"KVStore || NB, {/:Italic /Symbol d}{/:Italic p} = 100.000","results/nonblocking/output/ycsb_d/METIS/1000000_100000_free_8_1.csv"},
 };
 
 
@@ -169,7 +104,7 @@ void plot_files(std::vector<std::pair<std::string,std::string>> files, std::stri
 
             getline(ss, temp, ',');
             double throughput = std::stol(temp);
-            y[file.first].push_back(throughput);
+            y[file.first].push_back(throughput/1000.f);
 
         }
 
@@ -200,12 +135,11 @@ void plot_files(std::vector<std::pair<std::string,std::string>> files, std::stri
         matplot::xrange({0.0,x.back()});
     }
     matplot::grid(matplot::on);
-    matplot::xlabel("Seconds");
-    matplot::ylabel("Throughput");
+    matplot::xlabel("Tempo (segundos)");
+    matplot::ylabel("Vazão (kRequisições)");
     auto lgd = matplot::legend(true);
-    lgd->location(matplot::legend::general_alignment::topleft);
-    lgd->label_after_sample(true);
-    lgd->font_size(12.f);
+    lgd->location(matplot::legend::general_alignment::topright);
+    lgd->inside(false);
     std::string path = folder+image_name+".png";
     matplot::title("");
     matplot::save(path);

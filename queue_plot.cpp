@@ -118,7 +118,7 @@ void plot_files(std::vector<std::string> files, std::string image_name, std::str
     
     matplot::grid(matplot::on);
     matplot::xlabel("Threads");
-    matplot::ylabel("Tempo de execução (s)");
+    matplot::ylabel("Tempo de execução (segundos)");
     auto lgd = matplot::legend(legend_vector);
     lgd->location(matplot::legend::general_alignment::topleft);
     std::string path = folder+image_name+".jpg";
