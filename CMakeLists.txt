@@ -19,7 +19,6 @@ add_executable(q queue_main.cpp)
 
 add_executable(hashmap_plot hashmap_plot.cpp)
 add_executable(queue_plot queue_plot.cpp)
-add_executable(kvpaxos_plot kvpaxos_plot.cpp)
 
 
 option(BIG_VALUES "Compile test with 1024 bytes values" OFF)
@@ -32,6 +31,5 @@ ENDIF(BIG_VALUES)
 
 target_link_libraries(hashmap_plot PUBLIC matplot)
 target_link_libraries(queue_plot PUBLIC matplot)
-target_link_libraries(kvpaxos_plot PUBLIC matplot)
 target_link_libraries(hashmap TBB::tbb LibCDS::cds Threads::Threads)
 target_link_libraries(q TBB::tbb LibCDS::cds Threads::Threads Boost::thread)

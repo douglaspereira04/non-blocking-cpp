@@ -12,4 +12,3 @@ mkdir -p results/queue/
 
 ./hashmap_plot
 ./queue_plot
-./kvpaxos_plot
