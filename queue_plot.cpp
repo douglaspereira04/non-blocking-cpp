@@ -7,6 +7,7 @@
 #include <numeric>
 #include <vector>
 #include <regex>
+#include <iostream>
 
 
 
@@ -90,17 +91,25 @@ void plot_files(std::vector<std::string> files, std::string image_name, std::str
     std::vector<std::string> legend_vector;
 
     std::vector<double> x = {1,2,3,4,5,6};
-
     std::string line_spec[] = {"-o", "-x", "-+", "-v", "-^", "-*", "-s", "-d"};
     int i = 0;
     for (const auto& kv : avg_map) {
         std::string_view spec = line_spec[i];
-        matplot::plot(x, kv.second, spec);
+        auto p = matplot::plot(x, kv.second, spec);
+        p->line_width(1);
+        p->marker_size(8);
         i = (i+1)%8;
         matplot::hold(matplot::on);
-        std::string name = escaped_underline(kv.first);
-        std::cout << name << std::endl;
+        std::string name = escaped_underline(kv.first+" ");
         legend_vector.push_back(name);
+        
+        std::cout << name  << ": "<< std::endl;
+        int i = 0;
+        for (const auto v : kv.second) {
+            std::cout << (1<<i)  << ", " << v << std::endl;
+            i++;
+        }
+        
     }
 
     matplot::xticks({0,1,2,3,4,5,6,7});
@@ -111,9 +120,8 @@ void plot_files(std::vector<std::string> files, std::string image_name, std::str
     matplot::xlabel("Threads");
     matplot::ylabel("Tempo de execução (s)");
     auto lgd = matplot::legend(legend_vector);
-    lgd->inside(false);
-    lgd->location(matplot::legend::general_alignment::right);
-    std::string path = folder+image_name+".png";
+    lgd->location(matplot::legend::general_alignment::topleft);
+    std::string path = folder+image_name+".jpg";
     matplot::title("");
     matplot::save(path);
     matplot::hold(false);
@@ -132,7 +140,6 @@ void plot_all(std::string folder){
 
 }
 int main(int argc, char *argv[]){
-    plot_all("results/queue/");
     plot_all("results/queue/");
     return 0;
 }
